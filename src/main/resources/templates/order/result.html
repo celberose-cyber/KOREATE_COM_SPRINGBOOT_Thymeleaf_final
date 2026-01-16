@@ -1,0 +1,44 @@
+<!-- /templates/order/result.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>주문 완료</title>
+    <style>
+        .wrap{max-width:900px;margin:0 auto;padding:20px;}
+        .card{border:1px solid #e5e5e5;border-radius:12px;background:#fff;padding:18px;}
+        .h{font-size:20px;font-weight:900;margin:0 0 12px;}
+        .row{margin:8px 0;font-size:15px;}
+        .row b{font-weight:900;}
+        .btns{display:flex;gap:10px;margin-top:14px;}
+        .btn{display:inline-block;padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:800;border:1px solid #ddd;}
+        .btn-home{background:#111;color:#fff;border-color:#111;}
+        .btn-order{background:#fff;color:#111;}
+    </style>
+</head>
+<body>
+
+<div th:replace="common/header :: header"></div>
+
+<div class="wrap">
+    <div class="card">
+        <div class="h">주문 완료 ✅</div>
+
+        <div class="row">주문번호: <b th:text="${result.orderNo}">OD...</b></div>
+        <div class="row">주문ID: <b th:text="${result.orderId}">1</b></div>
+        <div class="row">결제금액: <b th:text="${#numbers.formatInteger(result.total, 0, 'COMMA')}">0</b>원</div>
+
+        <div class="btns">
+            <a class="btn btn-home" th:href="@{/}">홈으로</a>
+            <!-- ✅ 주문목록으로 -->
+            <a class="btn btn-order" th:href="@{/my/orders}">
+                주문목록
+            </a>
+            <a class="btn btn-order" th:href="@{/products(category='computer')}">쇼핑 계속하기</a>
+        </div>
+    </div>
+</div>
+
+<div th:replace="common/footer :: footer"></div>
+</body>
+</html>

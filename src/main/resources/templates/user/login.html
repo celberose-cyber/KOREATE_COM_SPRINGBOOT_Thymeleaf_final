@@ -1,0 +1,61 @@
+<!-- =========================
+1) 로그인(login.html) - 카드형
+========================= -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>로그인</title>
+</head>
+<body>
+
+<div th:replace="common/header :: header"></div>
+
+<div class="wrap">
+    <div class="card">
+        <div class="card-hd">
+            <h2 class="title">로그인</h2>
+            <span class="badge">LOGIN</span>
+        </div>
+
+        <form method="post" th:action="@{/login}">
+            <div style="margin-bottom:10px;">
+                <div class="muted" style="margin-bottom:6px;">이메일</div>
+                <input class="input" name="email" type="email" required placeholder="id@example.com" />
+            </div>
+
+            <div style="margin-bottom:10px;">
+                <div class="muted" style="margin-bottom:6px;">비밀번호</div>
+                <input class="input" name="password" type="password" required placeholder="••••••••" />
+            </div>
+
+            <div class="row" style="justify-content:flex-end; margin-top:12px;">
+                <button class="btn btn-primary" type="submit">로그인</button>
+            </div>
+        </form>
+
+        <div class="muted" style="margin-top:12px;">
+            계정이 없으신가요? <a th:href="@{/register}">회원가입</a>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ 이 페이지에서만 임시 CSS (추천: common/header에 공통으로 넣기) -->
+<style>
+    .wrap{max-width:1100px;margin:0 auto;padding:20px;}
+    .muted{color:#777;font-size:13px;}
+    .card{border:1px solid #e5e5e5;border-radius:12px;background:#fff;padding:14px 16px;max-width:520px;margin:0 auto;}
+    .card-hd{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-bottom:10px;border-bottom:1px solid #eee;margin-bottom:10px;}
+    .title{font-weight:900;margin:0;}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid #ddd;font-size:12px;font-weight:800;background:#fafafa;}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    .btn{padding:8px 10px;border-radius:10px;border:1px solid #ddd;background:#fff;cursor:pointer;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+    .btn:hover{background:#f7f7f7;}
+    .btn-primary{border-color:#111;background:#111;color:#fff;}
+    .btn-primary:hover{background:#000;}
+    .input{padding:10px 12px;border:1px solid #ddd;border-radius:10px;width:100%;font-size:14px;box-sizing:border-box;}
+</style>
+
+<div th:replace="common/footer :: footer"></div>
+</body>
+</html>

@@ -1,0 +1,9 @@
+/* grade color */
+.grade-bronze { color: #a97142; }
+.grade-silver { color: #b0b0b0; }
+.grade-gold { color: #d4af37; }
+.grade-platinum { color: #3cb8b8; }
+.grade-diamond { color: #6bc1ff; }
+
+/* header */
+.header-user { font-size: 14px; }

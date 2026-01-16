@@ -1,0 +1,110 @@
+<style>
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 20px; }
+  .card { border:1px solid #e5e5e5; border-radius:12px; background:#fff; padding:18px; margin:12px 0; }
+
+  /* ✅ 한 줄을 grid로: (썸네일)(정보)(금액) */
+  .item-row{
+    display:grid;
+    grid-template-columns: 60px 1fr 140px; /* 마지막이 가격 폭 */
+    gap:12px;
+    align-items:center;
+    padding:10px 0;
+    border-bottom:1px solid #f0f0f0;
+  }
+  .item-row:last-child{ border-bottom:none; }
+
+  .item-thumb{
+    width:60px;height:60px;border-radius:8px;object-fit:cover;border:1px solid #eee;
+  }
+  .item-name{ font-weight:800; }
+  .item-meta{ font-size:13px; color:#666; margin-top:4px; }
+
+  /* ✅ 가격은 “카드 내부 오른쪽”까지만 */
+  .item-price{
+    text-align:right;
+    font-weight:900;
+    white-space:nowrap;
+  }
+
+  .total-box{
+    border-top:1px solid #eee;
+    margin-top:16px;
+    padding-top:12px;
+    display:flex;
+    justify-content:flex-end; /* 오른쪽 정렬 */
+    gap:10px;
+    font-size:20px;
+    font-weight:900;
+  }
+</style>
+<div th:replace="common/header :: header"></div>
+<div class="wrap">
+  <h2>주문 상세</h2>
+
+  <!-- 주문 정보 -->
+  <div class="card">
+    <div>주문번호: <b th:text="${header.orderNo}"></b></div>
+    <div>
+      상태:
+      <span th:switch="${header.status}">
+        <span th:case="'PAID'">결제완료</span>
+        <span th:case="'CONFIRMED'">구매확정</span>
+        <span th:case="'CANCEL_REQUESTED'">취소처리중</span>
+        <span th:case="'REFUNDED'">환불완료</span>
+      </span>
+    </div>
+    <div th:if="${header.paidAt != null}">
+      결제일: <span th:text="${#dates.format(header.paidAt,'yyyy-MM-dd HH:mm')}"></span>
+    </div>
+  </div>
+
+  <!-- 배송지 -->
+  <div class="card">
+    <h4>배송지</h4>
+    <div th:text="${header.address}"></div>
+  </div>
+
+  <!-- 취소 사유 -->
+  <div class="card"
+       th:if="${header.status == 'CANCEL_REQUESTED'}">
+    <h4>취소 사유</h4>
+    <div th:text="${header.cancelReason}"></div>
+    <div class="muted">
+      요청일:
+      <span th:text="${#dates.format(header.cancelRequestedAt,'yyyy-MM-dd HH:mm')}"></span>
+    </div>
+  </div>
+
+  <!-- 상품 리스트 -->
+  <div class="card">
+    <h4 style="margin:0 0 10px;">주문 상품</h4>
+
+    <div th:each="it : ${items}" class="item-row">
+      <!-- 썸네일 -->
+      <img th:src="${it.imageUrl}" class="item-thumb" alt="thumb">
+
+      <!-- 상품 정보 -->
+      <div>
+        <div class="item-name" th:text="${it.productName}">상품명</div>
+        <div class="item-meta">
+          수량 <span th:text="${it.quantity}">1</span> ·
+          <span th:text="${#numbers.formatInteger(it.unitPrice,0,'COMMA')}">0</span>원
+        </div>
+      </div>
+
+      <!-- 상품 금액 -->
+      <div class="item-price">
+        <span th:text="${#numbers.formatInteger(it.lineTotal,0,'COMMA')}">0</span>원
+      </div>
+    </div>
+
+    <!-- ✅ 총액 -->
+    <div class="total-box">
+      <span>총 결제금액</span>
+      <span th:text="${#numbers.formatInteger(header.totalPrice,0,'COMMA')}">0</span>원
+    </div>
+  </div>
+
+  <a th:href="@{/my/orders}">← 주문목록으로</a>
+</div>
+<div th:replace="common/footer :: footer"></div>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title th:text="${p.name}">상품 상세</title>
+    <style>
+        /* 상단 레이아웃 */
+        .product-top {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        /* 이미지 크게 */
+        .product-image img {
+            width: 420px;       /* 🔥 여기서 크기 조절 */
+            max-width: 100%;
+            border: 1px solid #ddd;
+        }
+
+        /* 오른쪽 정보 */
+        .product-info {
+            flex: 1;
+            font-size: 15px;
+            line-height: 1.8;
+        }
+
+        /* 별점 */
+        .stars {
+            color: #f5a623;
+            font-size: 18px;
+            letter-spacing: 2px;
+        }
+
+        /* 장바구니 버튼 */
+        .btn-cart {
+            margin-top: 20px;
+            background-color: #ff7a00;
+            color: white;
+            border: none;
+            padding: 12px 26px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .btn-cart:hover {
+            background-color: #e66a00;
+        }
+        .btn-back{
+            display:inline-block;
+            margin:12px 0 18px;
+            padding:10px 14px;
+            border-radius:10px;
+            border:1px solid #ccc;
+            background:#fff;
+            cursor:pointer;
+        }
+        .toast{
+            position: fixed;
+            top: 90px;              /* 헤더 높이에 맞춰 조절 */
+            left: 50%;
+            transform: translateX(-50%);
+            background: #111;
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            z-index: 9999;
+            font-size: 14px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div th:replace="common/header :: header"></div>
+<div id="toastBox" th:if="${toast}" class="toast">
+    <span th:text="${toast}">장바구니에 담겼습니다.</span>
+</div>
+<h2 th:text="${p.name}">상품명</h2>
+
+<div class="product-top">
+
+    <!-- 이미지 영역 -->
+    <div class="product-image">
+        <img th:src="${p.imageUrl}" alt="thumbnail">
+    </div>
+
+    <!-- 정보 영역 -->
+    <div class="product-info">
+        <p><b>카테고리:</b> <span th:text="${p.category}"></span></p>
+
+        <p>
+            <b>가격:</b>
+            <span th:text="${p.price != null ? #numbers.formatInteger(p.price, 3, 'COMMA') : '가격정보없음'} + ' 원'">
+            </span>
+        </p>
+
+        <p><b>등록월:</b> <span th:text="${p.regMonth}"></span></p>
+
+        <p>
+            <b>평점:</b>
+            <span class="stars"
+                  th:with="r=${p.rating != null ? T(java.lang.Math).round(p.rating) : 0}">
+                <span th:each="i : ${#numbers.sequence(1,5)}"
+                      th:text="${i <= r ? '★' : '☆'}"></span>
+            </span>
+            <span th:if="${p.rating != null}">(<span th:text="${p.rating}"></span>)</span>
+        </p>
+
+        <p><b>리뷰수:</b> <span th:text="${p.reviewCount}">0</span></p>
+        <p><b>상품의견:</b> <span th:text="${p.opinionCount}">0</span></p>
+
+        <!-- 장바구니 -->
+        <form th:action="@{/cart}" method="post">
+            <input type="hidden" name="action" value="add">
+            <input type="hidden" name="productId" th:value="${p.id}">
+            <input type="hidden" name="qty" value="1">
+
+            <!-- ✅ 항상 '현재 상세'로 복귀 -->
+            <input type="hidden" name="returnUrl" th:value="@{/product(id=${p.id})}">
+
+            <button class="btn-cart" type="submit">🛒 장바구니 담기</button>
+            <input type="hidden" id="returnUrl" th:value="${returnUrl}" />
+            <button type="button" class="btn-back" onclick="goBack()">← 뒤로가기</button>
+        </form>
+    </div>
+
+</div>
+
+
+
+
+<hr>
+
+<h3>스펙</h3>
+<pre th:text="${p.specText}">spec</pre>
+
+<h3>추가정보</h3>
+<pre th:text="${p.extraText}">extra</pre>
+
+<p th:if="${p.detailUrl}">
+    <a th:href="${p.detailUrl}" target="_blank">다나와 원문 보기</a>
+</p>
+
+<p>
+    <a th:href="@{/products(category=${p.category})}">목록으로</a>
+</p>
+
+<div th:replace="common/footer :: footer"></div>
+
+<script th:if="${toast}">
+    setTimeout(() => {
+        const el = document.getElementById('toastBox');
+        if (el) el.remove(); // 또는 el.style.display='none'
+    }, 2000);
+</script>
+<script>
+    function goBack() {
+        const ru = document.getElementById('returnUrl')?.value;
+        if (ru && ru.trim().length > 0) location.href = ru;
+        else history.back();
+    }
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>고객 안내</title>
+</head>
+<body>
+
+<div th:replace="common/header :: header"></div>
+
+<div class="wrap">
+    <div class="card">
+        <div class="card-hd">
+            <h2 class="title">고객 안내</h2>
+            <span class="badge">HELP</span>
+        </div>
+
+        <!-- ✅ 버튼형 메뉴 -->
+        <div class="quick-grid">
+            <button class="qbtn" data-action="intro">매장/취급 품목 안내</button>
+            <button class="qbtn" data-action="top10">TOP10 상품 추천</button>
+            <button class="qbtn" data-action="policy">회원정책 안내</button>
+            <button class="qbtn" data-action="pay">결제방법 안내</button>
+        </div>
+
+        <!-- ✅ 응답 출력 -->
+        <div id="panel" class="panel" style="margin-top:12px;">
+            <div class="muted">위 버튼을 눌러 안내를 확인하세요.</div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const ctx = /*[[@{/}]]*/ "/";
+</script>
+<script th:src="@{/assets/js/helpbot.js}"></script>
+
+<style>
+    .wrap{max-width:1100px;margin:0 auto;padding:20px;}
+    .muted{color:#777;font-size:13px;}
+
+    .card{border:1px solid #e5e5e5;border-radius:12px;background:#fff;padding:14px 16px;}
+    .card-hd{display:flex;justify-content:space-between;align-items:center;gap:12px;
+        padding-bottom:10px;border-bottom:1px solid #eee;margin-bottom:10px;}
+    .title{font-weight:900;margin:0;}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid #ddd;
+        font-size:12px;font-weight:800;background:#fafafa;}
+
+    .quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+    .qbtn{
+        padding:12px;border-radius:12px;border:1px solid #ddd;background:#fff;
+        font-weight:900;cursor:pointer;text-align:left;
+    }
+    .qbtn:hover{background:#f7f7f7;}
+
+    .panel{
+        border:1px solid #eee;border-radius:12px;background:#fafafa;padding:12px;
+        min-height:220px;
+    }
+
+    .box{border:1px solid #e5e5e5;border-radius:12px;background:#fff;padding:12px;margin:10px 0;}
+    .box-hd{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;}
+    .box-title{font-weight:900;}
+    .pill{font-size:12px;font-weight:900;border:1px solid #ddd;border-radius:999px;padding:3px 10px;background:#fafafa;}
+    .list{display:flex;flex-direction:column;gap:8px;}
+    .row{display:flex;justify-content:space-between;gap:10px;align-items:center;}
+    .name{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .meta{font-size:13px;color:#666;display:flex;gap:10px;flex-wrap:wrap;}
+
+    @media (max-width:900px){
+        .quick-grid{grid-template-columns:repeat(2,1fr);}
+    }
+</style>
+
+<div th:replace="common/footer :: footer"></div>
+</body>
+</html>

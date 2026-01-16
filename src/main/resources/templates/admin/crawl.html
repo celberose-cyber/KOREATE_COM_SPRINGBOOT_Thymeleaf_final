@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>관리자 크롤링 실행</title>
+</head>
+<body>
+
+<div th:replace="~{common/header :: header}"></div>
+
+<h2>관리자 크롤링 실행</h2>
+
+<!-- JSP: request.getAttribute("message") 대체 -->
+<p th:if="${message}" style="color:green;" th:text="${message}"></p>
+
+<form method="post" th:action="@{/admin/crawl}">
+    <label>카테고리</label>
+    <select name="category">
+        <option value="computer">컴퓨터</option>
+        <option value="mouse">마우스</option>
+        <option value="keyboard">키보드</option>
+        <option value="monitor" selected>모니터</option>
+        <option value="speaker">스피커</option>
+    </select>
+
+    <label style="margin-left:12px;">페이지수(1~10)</label>
+    <input type="number" name="maxPages" min="1" max="10" value="3"/>
+
+    <button type="submit">크롤링 실행</button>
+</form>
+
+
+<p style="margin-top:12px; color:#666;">
+    * robots.txt 및 요청 간격을 준수하고, 수집 결과는 내부 DB에서만 사용합니다.
+</p>
+
+<div th:replace="~{common/footer :: footer}"></div>
+
+</body>
+</html>

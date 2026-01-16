@@ -1,0 +1,86 @@
+<div class="wrap">
+    <h2>주문 내역</h2>
+
+    <div th:if="${#lists.isEmpty(orders)}">
+        주문 내역이 없습니다.
+    </div>
+
+    <table th:if="${!#lists.isEmpty(orders)}" border="1" cellpadding="8">
+        <thead>
+        <tr>
+            <th>주문번호</th>
+            <th>대표상품</th>
+            <th>수량</th>
+            <th>총액</th>
+            <th>상태</th>
+            <th>상세</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr th:each="o : ${orders}">
+            <td th:text="${o.orderNo}">OD...</td>
+
+            <td>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <!-- 썸네일 -->
+                    <div style="width:40px;height:40px;border:1px solid #ddd;border-radius:6px;overflow:hidden;background:#fafafa;display:flex;align-items:center;justify-content:center;">
+                        <img th:if="${o.firstImageUrl != null and !#strings.isEmpty(o.firstImageUrl)}"
+                             th:src="${o.firstImageUrl}"
+                             alt="thumb"
+                             style="width:100%; height:100%; object-fit:cover;">
+                        <span th:if="${o.firstImageUrl == null or #strings.isEmpty(o.firstImageUrl)}"
+                              style="font-size:11px; color:#888;">no</span>
+                    </div>
+
+                    <!-- 상품명 + 외 N건 -->
+                    <div>
+                        <div th:text="${o.firstItemName}" style="font-weight:700;"></div>
+                        <div th:if="${o.itemCount > 1}"
+                             style="font-size:12px; color:#666;"
+                             th:text="'외 ' + (${o.itemCount} - 1) + '건'"></div>
+                    </div>
+                </div>
+            </td>
+
+            <td th:text="${o.totalQty}">1</td>
+            <td th:text="${#numbers.formatInteger(o.totalPrice,0,'COMMA')}">0</td>
+
+            <!-- ✅ 상태(한글 라벨 + PAID일 때 버튼 노출) -->
+            <td>
+                <!-- 한글 라벨 -->
+                <span th:switch="${o.status}">
+          <span th:case="'PAID'">결제완료</span>
+          <span th:case="'CONFIRMED'">구매확정</span>
+          <span th:case="'CANCEL_REQUESTED'">취소처리중</span>
+          <span th:case="'REFUNDED'">환불완료</span>
+          <span th:case="*">처리중</span>
+        </span>
+
+                <!-- ✅ PAID일 때만 버튼/사유 -->
+                <div th:if="${o.status == 'PAID'}"
+                     style="margin-top:6px; display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+
+                    <!-- 구매확정 -->
+                    <form th:action="@{/my/orders/{id}/confirm(id=${o.orderId})}" method="post">
+                        <button type="submit">구매확정</button>
+                    </form>
+
+                    <!-- 구매취소요청 + 사유 -->
+                    <form th:action="@{/my/orders/{id}/cancel-request(id=${o.orderId})}"
+                          method="post"
+                          style="display:flex; gap:6px; align-items:center;">
+                        <input type="text" name="reason" placeholder="취소사유(선택)" style="width:140px;">
+                        <button type="submit">구매취소요청</button>
+                    </form>
+
+                </div>
+            </td>
+
+            <td>
+                <a th:href="@{/my/orders/{id}(id=${o.orderId})}">보기</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>

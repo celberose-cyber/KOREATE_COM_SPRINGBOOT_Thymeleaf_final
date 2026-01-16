@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>메인 화면</title>
+</head>
+<body>
+
+<div th:replace="common/header :: header"></div>
+
+<!-- ✅ 메인 카드 톤 -->
+<div class="wrap">
+
+    <!-- ================= 메인 카드 ================= -->
+    <div class="card">
+
+        <!-- 🔹 카드 헤더 -->
+        <div class="card-hd">
+            <h2 class="title">메인 화면</h2>
+            <span class="badge">HOME</span>
+        </div>
+
+        <!-- 🔹 배너 + 카테고리 영역 -->
+        <div class="hero-row">
+
+            <!-- 배너 -->
+            <div class="hero">
+                <img th:src="@{/images/main.png}" alt="KOREATE.COM 메인 배너">
+            </div>
+
+            <!-- 카테고리 버튼 -->
+            <div class="category-grid compact">
+                <a class="cat-btn" th:href="@{/products(category='computer')}">
+                    <div class="cat-title">컴퓨터(본체)</div>
+                    <div class="cat-desc">상품 목록</div>
+                    <span class="badge">products</span>
+                </a>
+
+                <a class="cat-btn" th:href="@{/products(category='mouse')}">
+                    <div class="cat-title">마우스</div>
+                    <div class="cat-desc">상품 목록</div>
+                    <span class="badge">products</span>
+                </a>
+
+                <a class="cat-btn" th:href="@{/products(category='keyboard')}">
+                    <div class="cat-title">키보드</div>
+                    <div class="cat-desc">상품 목록</div>
+                    <span class="badge">products</span>
+                </a>
+
+                <a class="cat-btn" th:href="@{/products(category='monitor')}">
+                    <div class="cat-title">모니터</div>
+                    <div class="cat-desc">상품 목록</div>
+                    <span class="badge">products</span>
+                </a>
+
+                <a class="cat-btn" th:href="@{/products(category='speaker')}">
+                    <div class="cat-title">스피커</div>
+                    <div class="cat-desc">상품 목록</div>
+                    <span class="badge">products</span>
+                </a>
+            </div>
+
+        </div><!-- /hero-row -->
+
+        <!-- 🔹 기타 메뉴 -->
+        <div class="list" style="margin-top:14px;">
+
+            <a th:href="@{/chat}" class="card-link">
+                <div class="item">
+                    <div class="item-top">
+                        <div class="item-title">고객안내</div>
+                        <span class="badge">chat</span>
+                    </div>
+                    <div class="item-meta">
+                        프로젝트 기능 안내 및 도움말을 제공합니다.
+                    </div>
+                </div>
+            </a>
+
+            <a th:href="@{/admin/crawl}" class="card-link">
+                <div class="item">
+                    <div class="item-top">
+                        <div class="item-title">관리자 크롤링 실행</div>
+                        <span class="badge">admin</span>
+                    </div>
+                    <div class="item-meta muted">
+                        (임시) robots.txt 및 요청 간격을 준수하여 수집합니다.
+                    </div>
+                </div>
+            </a>
+
+        </div><!-- /list -->
+
+
+    </div><!-- /card -->
+
+
+    <!-- ================= 안내 카드 ================= -->
+    <div class="card" style="margin-top:12px;">
+        <div class="card-hd">
+            <div>
+                <div class="title" style="font-size:16px;">안내</div>
+                <div class="muted" style="margin-top:6px;">
+                    * 본 프로젝트는 공개 페이지를 robots.txt 및 요청 간격을 준수하여 수집하고,
+                    수집 결과는 내부 DB 데이터만 사용합니다.
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /wrap -->
+
+<!-- ✅ 이 페이지에서만 임시로 CSS 포함 (추천: common/header에 공통으로 넣기) -->
+<style>
+    .wrap{max-width:1100px;margin:0 auto;padding:20px;}
+    .muted{color:#777;font-size:13px;}
+
+    .card{
+        border:1px solid #e5e5e5;border-radius:12px;background:#fff;padding:14px 16px;
+    }
+    .card-hd{
+        display:flex;justify-content:space-between;align-items:center;gap:12px;
+        padding-bottom:10px;border-bottom:1px solid #eee;margin-bottom:10px;
+    }
+    .title{font-weight:900;margin:0;font-size:15px;}
+
+    .badge{
+        display:inline-flex;align-items:center;gap:6px;
+        padding:2px 7px;border-radius:999px;border:1px solid #ddd;
+        font-size:10px;font-weight:800;background:#fafafa;
+    }
+
+    .list{display:flex;flex-direction:column;gap:12px;}
+    .item{
+        border:1px solid #e5e5e5;border-radius:12px;background:#fff;padding:14px 16px;
+    }
+    .item-top{
+        display:flex;justify-content:space-between;align-items:center;gap:12px;
+    }
+    .item-title{
+        font-weight:900;line-height:1.2;text-decoration:none;color:#111;
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .item-title:hover{ text-decoration:underline; }
+    .item-meta{margin-top:6px;color:#666;font-size:13px;display:flex;gap:10px;flex-wrap:wrap;}
+
+    @media (max-width:720px){
+        .item-title{white-space:normal;}
+    }
+
+    /* ✅ 상단 배너(이미지 공간) */
+.hero{
+    margin: 12px 0 20px;
+    height: 260px;              /* 🔥 배너 키우기 */
+    border-radius: 14px;
+    background: #f7f9fc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero img{
+    max-width: 95%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* ✅ 카테고리 버튼 그리드 */
+.category-grid{
+  display:grid;
+  grid-template-columns: repeat(5, 1fr); /* PC에서는 5개 가로 */
+  gap: 10px;
+}
+
+.cat-btn{
+  border:1px solid #e5e5e5;
+  border-radius:12px;
+  background:#fff;
+  padding:12px 10px;
+  text-decoration:none;
+  color:#111;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:6px;
+  transition: transform .05s ease, box-shadow .05s ease;
+}
+.cat-btn:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,.06);
+}
+.cat-title{ font-weight:900; font-size:14px; }
+.cat-desc{ font-size:12px; color:#666; }
+
+/* ✅ 반응형: 화면 줄면 3열→2열 */
+@media (max-width: 980px){
+  .category-grid{ grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 620px){
+  .category-grid{ grid-template-columns: repeat(2, 1fr); }
+  .hero img{ height: 160px; }
+}
+
+    /* ✅ 배너(좌) + 버튼(우) 2컬럼 */
+.hero-row{
+  display: grid;
+  grid-template-columns: 2fr 1fr;   /* 🔥 왼쪽 배너 크게, 오른쪽 버튼 좁게 */
+  gap: 12px;
+  margin: 12px 0 18px;
+  align-items: stretch;
+}
+
+/* 배너는 높이를 버튼 영역과 맞추기 위해 100% */
+.hero{
+  margin: 0;            /* 기존 margin 제거 */
+  height: 100%;         /* 🔥 hero-row 높이 따라감 */
+  min-height: 260px;    /* 최소 높이 확보 */
+  border-radius: 14px;
+  background: #f7f9fc;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+.hero img{
+  max-width: 96%;
+  max-height: 96%;
+  object-fit: contain;
+}
+
+/* ✅ 오른쪽 버튼 영역: 2열(좁은 공간에 맞게) */
+.category-grid.compact{
+  grid-template-columns: repeat(2, 1fr);  /* 🔥 2열로 압축 */
+  gap: 10px;
+  align-content: start;
+}
+
+/* ✅ 버튼 더 컴팩트 */
+.category-grid.compact .cat-btn{
+  padding: 10px 10px;
+  gap: 4px;
+}
+.category-grid.compact .cat-title{
+  font-size: 13px;
+}
+.category-grid.compact .cat-desc{
+  font-size: 11px;
+}
+
+/* ✅ 반응형: 화면 줄면 위(배너) 아래(버튼)로 */
+@media (max-width: 980px){
+  .hero-row{
+    grid-template-columns: 1fr;   /* 세로 스택 */
+  }
+  .hero{
+    min-height: 220px;
+  }
+  .category-grid.compact{
+    grid-template-columns: repeat(3, 1fr); /* 태블릿에서는 3열 */
+  }
+}
+@media (max-width: 620px){
+  .category-grid.compact{
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .hero{
+    min-height: 180px;
+  }
+}
+.card-link{
+  display:block;
+  text-decoration:none;
+  color:inherit;
+}
+.card-link:hover{
+  text-decoration:none;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,.06);
+}
+</style>
+
+<div th:replace="common/footer :: footer"></div>
+
+</body>
+</html>

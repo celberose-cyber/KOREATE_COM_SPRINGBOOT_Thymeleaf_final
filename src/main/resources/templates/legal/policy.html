@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${title}">정책</title>
+</head>
+<body>
+<div th:replace="common/header :: header"></div>
+
+<div class="wrap">
+  <div class="card">
+    <h2 class="title" th:text="${title}">정책</h2>
+    <div class="muted" th:if="${version != null && !#strings.isEmpty(version)}"
+         th:text="'버전: ' + ${version}"></div>
+    <hr>
+    <div th:utext="${html}"></div>
+  </div>
+</div>
+
+<style>
+  .wrap{max-width:1000px;margin:0 auto;padding:20px;}
+  .card{border:1px solid #e5e5e5;border-radius:12px;background:#fff;padding:14px 16px;}
+  .title{font-weight:900;margin:0 0 10px;}
+  .muted{color:#777;font-size:13px;}
+</style>
+
+<div th:replace="common/footer :: footer"></div>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<div th:replace="common/header :: header"></div>
+<div class="wrap">
+  <h2 style="margin:0 0 14px;">주문 내역</h2>
+
+  <style>
+    .wrap{max-width:1100px;margin:0 auto;padding:20px;}
+    .muted{color:#777;font-size:13px;}
+
+    .order-list{display:flex;flex-direction:column;gap:12px;}
+    .order-card{
+      border:1px solid #e5e5e5;border-radius:12px;background:#fff;padding:14px 16px;
+    }
+    .order-top{
+      display:flex;justify-content:space-between;align-items:center;gap:12px;
+      padding-bottom:10px;border-bottom:1px solid #eee;margin-bottom:10px;
+    }
+    .order-no{font-weight:900;}
+    .order-meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    .badge{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:4px 10px;border-radius:999px;border:1px solid #ddd;
+      font-size:12px;font-weight:800;background:#fafafa;
+    }
+
+    .order-body{
+      display:flex;gap:14px;align-items:center;
+    }
+    .thumb{
+      width:56px;height:56px;border:1px solid #ddd;border-radius:10px;
+      overflow:hidden;background:#fafafa;display:flex;align-items:center;justify-content:center;
+      flex:0 0 auto;
+    }
+    .thumb img{width:100%;height:100%;object-fit:cover;}
+    .prod{flex:1;min-width:0;}
+    .prod-name{font-weight:900;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .prod-sub{margin-top:4px;font-size:13px;color:#666;display:flex;gap:10px;flex-wrap:wrap;}
+    .right{
+      text-align:right;flex:0 0 auto;min-width:140px;
+    }
+    .price{font-size:18px;font-weight:900;}
+    .qty{margin-top:4px;font-size:13px;color:#666;}
+
+    .actions{
+      margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+    }
+    .btn{
+      padding:8px 10px;border-radius:10px;border:1px solid #ddd;background:#fff;
+      cursor:pointer;font-weight:800;
+    }
+    .btn:hover{background:#f7f7f7;}
+    .btn-primary{border-color:#111;background:#111;color:#fff;}
+    .btn-primary:hover{background:#000;}
+    .input{
+      padding:8px 10px;border:1px solid #ddd;border-radius:10px;min-width:180px;
+    }
+
+    @media (max-width:720px){
+      .order-body{align-items:flex-start;}
+      .right{min-width:unset;}
+      .price{font-size:16px;}
+      .prod-name{white-space:normal;}
+    }
+  </style>
+
+  <div th:if="${#lists.isEmpty(orders)}" class="muted">
+    주문 내역이 없습니다.
+  </div>
+
+  <div th:if="${!#lists.isEmpty(orders)}" class="order-list">
+    <div class="order-card" th:each="o : ${orders}">
+
+      <!-- 상단: 주문번호 + 상태 + 보기 -->
+      <div class="order-top">
+        <div class="order-meta">
+          <span class="order-no" th:text="${o.orderNo}">OD...</span>
+
+          <!-- 상태 뱃지 (한글) -->
+          <span class="badge" th:switch="${o.status}">
+            <span th:case="'PAID'">결제완료</span>
+            <span th:case="'CONFIRMED'">구매확정</span>
+            <span th:case="'CANCEL_REQUESTED'">취소처리중</span>
+            <span th:case="'REFUNDED'">환불완료</span>
+            <span th:case="*">처리중</span>
+          </span>
+
+          <!-- (선택) 결제일 -->
+          <span class="muted" th:if="${o.paidAt != null}"
+                th:text="${#dates.format(o.paidAt,'yyyy-MM-dd HH:mm')}">2025-12-30</span>
+        </div>
+
+        <a th:href="@{/my/orders/{id}(id=${o.orderId})}" style="font-weight:800;">상세보기</a>
+      </div>
+
+      <!-- 본문: 썸네일 + 대표상품 + 우측 총액 -->
+      <div class="order-body">
+        <div class="thumb">
+          <img th:if="${o.firstImageUrl != null and !#strings.isEmpty(o.firstImageUrl)}"
+               th:src="${o.firstImageUrl}" alt="thumb">
+          <span th:if="${o.firstImageUrl == null or #strings.isEmpty(o.firstImageUrl)}"
+                class="muted">no</span>
+        </div>
+
+        <div class="prod">
+          <div class="prod-name" th:text="${o.firstItemName}">대표상품명</div>
+
+          <div class="prod-sub">
+            <!-- 상품종류: 외 N건 -->
+            <span th:if="${o.itemCount > 1}"
+                  th:text="'외 ' + (${o.itemCount} - 1) + '건'">외 2건</span>
+
+            <!-- 총수량 -->
+            <span th:text="'총 수량 ' + ${o.totalQty} + '개'">총 수량 3개</span>
+          </div>
+
+          <!-- 액션: PAID일 때만 -->
+          <div class="actions" th:if="${o.status == 'PAID'}">
+            <form th:action="@{/my/orders/{id}/confirm(id=${o.orderId})}" method="post">
+              <button class="btn btn-primary" type="submit">구매확정</button>
+            </form>
+
+            <form th:action="@{/my/orders/{id}/cancel-request(id=${o.orderId})}"
+                  method="post" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <input class="input" type="text" name="reason" placeholder="취소사유(선택)">
+              <button class="btn" type="submit">구매취소요청</button>
+            </form>
+          </div>
+
+          <!-- 상태별 안내 -->
+          <div class="muted" th:if="${o.status == 'CANCEL_REQUESTED'}" style="margin-top:6px;">
+            취소요청이 접수되어 처리 중입니다. (상세에서 사유/시간 확인)
+          </div>
+        </div>
+
+        <div class="right">
+          <div class="price">
+            <span th:text="${#numbers.formatInteger(o.totalPrice,0,'COMMA')}">0</span>원
+          </div>
+          <div class="qty muted">
+            주문ID <span th:text="${o.orderId}">1</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<div th:replace="common/footer :: footer"></div>

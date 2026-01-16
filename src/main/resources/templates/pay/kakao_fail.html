@@ -1,0 +1,17 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <title>결제 실패</title>
+</head>
+<body>
+<div th:replace="common/header :: header"></div>
+<h2>카카오페이 결제가 실패했습니다.</h2>
+<p>주문번호: <b th:text="${orderNo}">OD...</b></p>
+
+<a href="/order/checkout">다시 결제하기</a>
+<span> | </span>
+<a href="/cart">장바구니로</a>
+<div th:replace="common/footer :: footer"></div>
+</body>
+</html>

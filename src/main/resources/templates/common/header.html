@@ -1,0 +1,88 @@
+
+
+<div th:fragment="header">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <header style="padding:12px; border-bottom:1px solid #ddd; margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+
+            <div>
+                <a th:href="@{/}" style="font-weight:700; text-decoration:none;">
+                    KOREATE COM
+                </a>
+            </div>
+<!--            기존 <nav style="display:flex; gap:10px; align-items:center;">-->
+
+            <nav style="
+                display:flex;
+                gap:10px;
+                align-items:center;
+                flex-wrap:nowrap;
+                white-space:nowrap;
+                overflow-x:auto;
+                ">
+                <a th:href="@{/products(category='computer')}">컴퓨터(본체)</a>
+                <a th:href="@{/products(category='mouse')}">마우스</a>
+                <a th:href="@{/products(category='keyboard')}">키보드</a>
+                <a th:href="@{/products(category='monitor')}">모니터</a>
+                <a th:href="@{/products(category='speaker')}">스피커</a>
+                <a th:href="@{/cart(returnUrl=${currentUrl})}">장바구니</a>
+
+
+
+                <a th:href="@{/my}" style="font-weight:600;">회원정보</a>
+                <a th:href="@{/chat}">고객안내</a>
+
+                <!-- 로그인 전 -->
+                <th:block th:if="${session.LOGIN_USER == null}">
+                    <a th:href="@{/login}">로그인</a>
+                    <a th:href="@{/register}">회원가입</a>
+                </th:block>
+
+                <!-- 로그인 후 -->
+                <th:block th:if="${session.LOGIN_USER != null}">
+                    <span>
+                        <b th:text="${session.LOGIN_USER.name}">홍길동</b>님
+                    </span>
+                    |
+                    등급:
+                    <span th:class="'grade-' + ${#strings.toLowerCase(session.LOGIN_USER.grade)}">
+                        <b th:text="${session.LOGIN_USER.grade}">GOLD</b>
+                    </span>
+                    <img
+                            th:src="@{/images/grades/{g}.svg(
+                            g=${#strings.toLowerCase(session.LOGIN_USER.grade)}
+                        )}"
+                            alt="grade"
+                            style="height:18px; vertical-align:middle; margin-left:4px;"
+                    />
+                    |
+                    누적:
+                    <span th:text="${#numbers.formatInteger(session.LOGIN_USER.totalSpent, 0, 'COMMA')}">0</span>원
+                    |
+                    포인트:
+                    <span th:text="${#numbers.formatInteger(session.LOGIN_USER.pointBalance, 0, 'COMMA')}">0</span>P
+                    |
+                    권한:
+                    <span th:text="${session.LOGIN_USER.role}">USER</span>
+                    <!-- ✅ 주문목록으로 -->
+                    |
+                    <a th:href="@{/my/orders}"
+                       style="font-weight:600; text-decoration:none;">
+                        주문목록
+                    </a>
+
+                    <!-- ✅ 로그아웃 -->
+                    |
+                    <form th:action="@{/logout}"  style="display:inline;">
+                        <button type="submit"
+                                style="border:none; background:none; cursor:pointer; font-weight:600;">
+                            로그아웃
+                        </button>
+                    </form>
+                </th:block>
+            </nav>
+        </div>
+    </header>
+</div>
+
+
