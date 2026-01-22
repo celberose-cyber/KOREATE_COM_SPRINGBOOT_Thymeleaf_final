@@ -5,14 +5,25 @@ import org.zerock.com.example.common.DBUtil;
 import org.zerock.com.example.order.OrderDAO;
 
 import java.sql.Connection;
-
 @Service
 public class UserService {
 
-    private final UserDAO userDAO = new UserDAO();
-    private final OrderDAO orderDAO = new OrderDAO();
-    private final GradePolicyDAO gradePolicyDAO = new GradePolicyDAO();
-    private final PointLedgerDAO pointLedgerDAO = new PointLedgerDAO();
+    private final UserDAO userDAO;
+    private final OrderDAO orderDAO;
+    private final GradePolicyDAO gradePolicyDAO;
+    private final PointLedgerDAO pointLedgerDAO;
+
+    public UserService(
+            UserDAO userDAO,
+            OrderDAO orderDAO,
+            GradePolicyDAO gradePolicyDAO,
+            PointLedgerDAO pointLedgerDAO
+    ) {
+        this.userDAO = userDAO;
+        this.orderDAO = orderDAO;
+        this.gradePolicyDAO = gradePolicyDAO;
+        this.pointLedgerDAO = pointLedgerDAO;
+    }
 
     public void payComplete(long userId, long orderId) throws Exception {
         try (Connection con = DBUtil.getConnection()) {

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${title}">건의 수정</title>
+
+  <style>
+    .wrap{max-width:900px;margin:0 auto;padding:20px;}
+    .card{border:1px solid #eee;border-radius:12px;background:#fff;overflow:hidden;}
+    .card-hd{display:flex;justify-content:space-between;align-items:center;gap:12px;
+      padding:14px 16px;border-bottom:1px solid #eee;background:#fafafa;}
+    .title{margin:0;font-weight:900;font-size:18px;}
+    .meta{color:#666;font-size:13px;font-weight:800;}
+
+    .form{padding:16px;}
+    .field{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+    label{font-weight:900;font-size:13px;color:#111;}
+    input[type="text"], textarea{
+      padding:10px 12px;border:1px solid #ddd;border-radius:12px;font-size:14px;
+      outline:none;background:#fff;
+    }
+    input[type="text"]:focus, textarea:focus{border-color:#bbb;}
+    textarea{resize:vertical;min-height:220px;line-height:1.6;}
+
+    .btn{padding:8px 10px;border-radius:10px;border:1px solid #ddd;background:#fff;
+      cursor:pointer;font-weight:900;text-decoration:none;color:#111;display:inline-flex;align-items:center;}
+    .btn:hover{background:#f7f7f7;}
+    .btn-primary{background:#111;color:#fff;border-color:#111;}
+    .btn-primary:hover{background:#000;}
+    .btn-ghost{background:#fff;}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  </style>
+</head>
+
+<body>
+<div th:replace="common/header :: header"></div>
+
+<div class="wrap">
+  <div class="card">
+    <div class="card-hd">
+      <h2 class="title" th:text="${title}">건의 수정</h2>
+      <div class="meta">필요한 부분만 수정하세요</div>
+    </div>
+
+    <form class="form" th:action="@{/suggests/{id}/edit(id=${s.id})}" method="post">
+      <div class="field">
+        <label>제목</label>
+        <input type="text" name="title" required maxlength="200" th:value="${s.title}">
+      </div>
+
+      <div class="field">
+        <label>내용</label>
+        <textarea name="content" required rows="10" th:text="${s.content}"></textarea>
+      </div>
+
+      <div class="row" style="margin-top:14px;">
+        <button type="submit" class="btn btn-primary">저장</button>
+        <a class="btn btn-ghost" th:href="@{/suggests/{id}(id=${s.id})}">취소</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div th:replace="common/footer :: footer"></div>
+</body>
+</html>

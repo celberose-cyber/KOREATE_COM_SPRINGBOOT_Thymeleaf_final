@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <title th:text="${n.title}">공지 상세</title>
+
+  <style>
+    .wrap{max-width:1200px;margin:0 auto;padding:20px;}
+
+    .btn{display:inline-flex;align-items:center;gap:6px;
+      padding:8px 10px;border-radius:10px;border:1px solid #ddd;background:#fff;
+      cursor:pointer;font-weight:900;text-decoration:none;color:#111;}
+    .btn:hover{background:#f7f7f7;}
+
+    .panel{border:1px solid #eee;border-radius:12px;background:#fff;overflow:hidden;}
+    .panel-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+      padding:14px 16px;border-bottom:1px solid #eee;background:#fafafa;}
+    .ttl{margin:0;font-weight:900;font-size:20px;}
+    .meta{margin-top:8px;color:#666;font-size:13px;font-weight:800;}
+    .badge{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;
+      border:1px solid #ddd;background:#fff;font-weight:900;font-size:12px;}
+    .body{padding:16px;}
+    .pre{white-space:pre-wrap;margin:0;font-family:inherit;line-height:1.7;font-size:14px;}
+  </style>
+</head>
+
+<body>
+<div th:replace="common/header :: header"></div>
+
+<div class="wrap">
+  <div style="margin-bottom:12px;">
+    <a class="btn" th:href="${returnUrl}">← 목록</a>
+  </div>
+
+  <section class="panel">
+    <div class="panel-hd">
+      <div>
+        <h2 class="ttl" th:text="${n.title}">제목</h2>
+        <div class="meta">
+          작성자: <b th:text="${n.createdByUsername}">admin</b>
+          · 작성일: <span th:text="${#dates.format(n.createdAt,'yyyy-MM-dd HH:mm')}"></span>
+          <span th:if="${n.updatedAt != null}">
+            · 수정일: <span th:text="${#dates.format(n.updatedAt,'yyyy-MM-dd HH:mm')}"></span>
+          </span>
+        </div>
+      </div>
+      <span class="badge">NOTICE</span>
+    </div>
+
+    <div class="body">
+      <pre class="pre" th:text="${n.content}">내용</pre>
+    </div>
+  </section>
+</div>
+
+<div th:replace="common/footer :: footer"></div>
+</body>
+</html>

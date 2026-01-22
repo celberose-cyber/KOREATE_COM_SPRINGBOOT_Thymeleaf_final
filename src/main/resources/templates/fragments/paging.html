@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="paging(baseUrl, page, lastPage, size, params)">
+
+  <div style="display:flex; gap:8px; justify-content:center; align-items:center; padding:12px 0;">
+    <a class="btn" th:if="${page > 1}"
+       th:href="@{${baseUrl}(page=${page-1}, size=${size}, ${params})}">이전</a>
+
+    <span style="color:#666;">
+      <b th:text="${page}">1</b> / <b th:text="${lastPage}">1</b>
+    </span>
+
+    <a class="btn" th:if="${page < lastPage}"
+       th:href="@{${baseUrl}(page=${page+1}, size=${size}, ${params})}">다음</a>
+  </div>
+
+</div>
+
+</body>
+</html>

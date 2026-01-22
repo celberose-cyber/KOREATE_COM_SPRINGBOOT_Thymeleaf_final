@@ -126,9 +126,14 @@ public class OrderDAO {
         }
     }
 
-    // ✅ PAID만 합산
+    // ✅ PAID + CONFIRMED 합산 (결제 기준 실적)
     public long totalSpentByUser(Connection con, long userId) throws SQLException {
-        String sql = "SELECT COALESCE(SUM(total_price),0) FROM orders WHERE user_id=? AND status='PAID'";
+        String sql = """
+        SELECT COALESCE(SUM(total_price),0)
+          FROM orders
+         WHERE user_id=?
+           AND status IN ('PAID','CONFIRMED')
+    """;
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setLong(1, userId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -137,6 +142,8 @@ public class OrderDAO {
             }
         }
     }
+
+
 
     public void updateSnapshotRates(Connection con,
                                     long orderId,
@@ -371,6 +378,334 @@ public class OrderDAO {
             }
         }
     }
+
+    public List<OrderItemDTO> listOrderItems(Connection con, long orderId) throws Exception {
+        String sql = "select product_id, quantity, unit_price from order_items where order_id = ?";
+        List<OrderItemDTO> list = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, orderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    OrderItemDTO it = new OrderItemDTO();
+                    it.setProductId(rs.getLong("product_id"));
+                    it.setQuantity(rs.getInt("quantity"));
+                    it.setUnitPrice(rs.getLong("unit_price"));
+                    list.add(it);
+                }
+            }
+        }
+        return list;
+    }
+    public List<DailySalesDTO> listDailySalesPaidAtPaged(Connection con,
+                                                         java.time.LocalDate start,
+                                                         java.time.LocalDate end,
+                                                         int size,
+                                                         int offset) throws Exception {
+
+        String sql = """
+        SELECT
+          DATE(paid_at) AS day,
+          COUNT(*) AS paid_count,
+          COALESCE(SUM(total_price), 0) AS paid_amount
+        FROM orders
+        WHERE paid_at >= ? AND paid_at < ?
+          AND status IN ('PAID','CONFIRMED')
+        GROUP BY DATE(paid_at)
+        ORDER BY day DESC
+        LIMIT ? OFFSET ?
+    """;
+
+        List<DailySalesDTO> list = new ArrayList<>();
+
+        Timestamp fromTs = Timestamp.valueOf(start.atStartOfDay());
+        Timestamp toTs   = Timestamp.valueOf(end.plusDays(1).atStartOfDay());
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setTimestamp(1, fromTs);
+            ps.setTimestamp(2, toTs);
+            ps.setInt(3, size);
+            ps.setInt(4, offset);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    DailySalesDTO d = new DailySalesDTO();
+                    d.setDay(rs.getString("day"));
+                    // 기존 DTO 필드 재사용: orderCount는 여기서 "결제건수"로 씁니다.
+                    int paidCount = rs.getInt("paid_count");
+                    d.setOrderCount(paidCount);
+                    d.setPaidCount(paidCount);
+                    d.setPaidAmount(rs.getLong("paid_amount"));
+                    list.add(d);
+                }
+            }
+        }
+        return list;
+    }
+    public int countDailySalesPaidAt(Connection con,
+                                     java.time.LocalDate start,
+                                     java.time.LocalDate end) throws Exception {
+
+        String sql = """
+        SELECT COUNT(*) AS cnt
+        FROM (
+          SELECT DATE(paid_at) AS day
+          FROM orders
+          WHERE paid_at >= ? AND paid_at < ?
+            AND status IN ('PAID','CONFIRMED')
+          GROUP BY DATE(paid_at)
+        ) t
+    """;
+
+        Timestamp fromTs = Timestamp.valueOf(start.atStartOfDay());
+        Timestamp toTs   = Timestamp.valueOf(end.plusDays(1).atStartOfDay());
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setTimestamp(1, fromTs);
+            ps.setTimestamp(2, toTs);
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getInt("cnt");
+            }
+        }
+    }
+
+    public List<OrderRow> listForAdmin(Connection con, Long userId) throws SQLException {
+        String base = """
+        SELECT
+          o.order_id,
+          o.order_no,
+          o.status,
+          o.total_price,
+          o.paid_at,
+          o.created_at,
+
+          (SELECT COUNT(*)
+             FROM order_items oi
+            WHERE oi.order_id = o.order_id) AS item_count,
+
+          (SELECT COALESCE(SUM(oi.quantity), 0)
+             FROM order_items oi
+            WHERE oi.order_id = o.order_id) AS total_qty,
+
+          (SELECT p.name
+             FROM order_items oi
+             JOIN products p ON p.id = oi.product_id
+            WHERE oi.order_id = o.order_id
+            ORDER BY oi.order_item_id ASC
+            LIMIT 1) AS first_item_name,
+
+          (SELECT p.image_url
+             FROM order_items oi
+             JOIN products p ON p.id = oi.product_id
+            WHERE oi.order_id = o.order_id
+            ORDER BY oi.order_item_id ASC
+            LIMIT 1) AS first_image_url
+
+        FROM orders o
+        WHERE o.status IN ('PAID','CONFIRMED','CANCEL_REQUESTED','REFUNDED')
+    """;
+
+        String tail = " ORDER BY o.order_id DESC";
+
+        boolean filtered = (userId != null);
+        String sql = filtered ? (base + " AND o.user_id = ? " + tail) : (base + tail);
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            if (filtered) ps.setLong(1, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                List<OrderRow> out = new ArrayList<>();
+                while (rs.next()) {
+                    out.add(new OrderRow(
+                            rs.getLong("order_id"),
+                            rs.getString("order_no"),
+                            rs.getString("first_item_name"),
+                            rs.getString("first_image_url"),
+                            rs.getInt("item_count"),
+                            rs.getInt("total_qty"),
+                            rs.getLong("total_price"),
+                            rs.getString("status"),
+                            rs.getTimestamp("created_at"),
+                            rs.getTimestamp("paid_at")
+                    ));
+                }
+                return out;
+            }
+        }
+    }
+
+
+    public OrderDetailHeader findOrderHeaderAdmin(Connection con, long orderId) throws SQLException {
+        String sql = """
+        SELECT order_id, order_no, status, address,
+               total_price,
+               paid_at, cancel_requested_at, cancel_reason,
+               refunded_at, confirmed_at
+          FROM orders
+         WHERE order_id=?
+    """;
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, orderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return null;
+                return new OrderDetailHeader(
+                        rs.getLong("order_id"),
+                        rs.getString("order_no"),
+                        rs.getString("status"),
+                        rs.getString("address"),
+                        rs.getLong("total_price"),
+                        rs.getTimestamp("paid_at"),
+                        rs.getTimestamp("cancel_requested_at"),
+                        rs.getString("cancel_reason"),
+                        rs.getTimestamp("refunded_at"),
+                        rs.getTimestamp("confirmed_at")
+                );
+            }
+        }
+    }
+
+
+    public String findStatus(Connection con, long orderId) throws SQLException {
+        String sql = "SELECT status FROM orders WHERE order_id=?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, orderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getString(1) : null;
+            }
+        }
+    }
+    public RefundBase findRefundBase(Connection con, long orderId) throws SQLException {
+        String sql = """
+        SELECT order_id, user_id, total_price, status
+          FROM orders
+         WHERE order_id=?
+    """;
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, orderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return null;
+                return new RefundBase(
+                        rs.getLong("order_id"),
+                        rs.getLong("user_id"),
+                        rs.getLong("total_price"),
+                        rs.getString("status")
+                );
+            }
+        }
+    }
+
+    public record RefundBase(long orderId, long userId, long totalPrice, String status) {}
+
+    public int countForAdmin(Connection con, Long userId,
+                             java.time.LocalDate start, java.time.LocalDate end) throws SQLException {
+
+        String base = """
+        SELECT COUNT(*) AS cnt
+          FROM orders o
+         WHERE COALESCE(o.paid_at, o.created_at) >= ?
+           AND COALESCE(o.paid_at, o.created_at) < ?
+           AND o.status IN ('PAID','CONFIRMED','CANCEL_REQUESTED','REFUNDED')
+    """;
+
+        boolean filtered = (userId != null);
+        String sql = filtered ? (base + " AND o.user_id = ?") : base;
+
+        Timestamp fromTs = Timestamp.valueOf(start.atStartOfDay());
+        Timestamp toTs   = Timestamp.valueOf(end.plusDays(1).atStartOfDay());
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setTimestamp(1, fromTs);
+            ps.setTimestamp(2, toTs);
+            if (filtered) ps.setLong(3, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getInt("cnt");
+            }
+        }
+    }
+
+
+    public List<OrderRow> listForAdminPaged(Connection con, Long userId,
+                                            java.time.LocalDate start, java.time.LocalDate end,
+                                            int size, int offset) throws SQLException {
+
+        String base = """
+        SELECT
+          o.order_id,
+          o.order_no,
+          o.status,
+          o.total_price,
+          o.paid_at,
+          o.created_at,
+
+          (SELECT COUNT(*)
+             FROM order_items oi
+            WHERE oi.order_id = o.order_id) AS item_count,
+
+          (SELECT COALESCE(SUM(oi.quantity), 0)
+             FROM order_items oi
+            WHERE oi.order_id = o.order_id) AS total_qty,
+
+          (SELECT p.name
+             FROM order_items oi
+             JOIN products p ON p.id = oi.product_id
+            WHERE oi.order_id = o.order_id
+            ORDER BY oi.order_item_id ASC
+            LIMIT 1) AS first_item_name,
+
+          (SELECT p.image_url
+             FROM order_items oi
+             JOIN products p ON p.id = oi.product_id
+            WHERE oi.order_id = o.order_id
+            ORDER BY oi.order_item_id ASC
+            LIMIT 1) AS first_image_url
+
+        FROM orders o
+        WHERE COALESCE(o.paid_at, o.created_at) >= ?
+          AND COALESCE(o.paid_at, o.created_at) < ?
+          AND o.status IN ('PAID','CONFIRMED','CANCEL_REQUESTED','REFUNDED')
+    """;
+
+        String tail = " ORDER BY o.order_id DESC LIMIT ? OFFSET ?";
+
+        boolean filtered = (userId != null);
+        String sql = filtered ? (base + " AND o.user_id = ? " + tail) : (base + tail);
+
+        Timestamp fromTs = Timestamp.valueOf(start.atStartOfDay());
+        Timestamp toTs   = Timestamp.valueOf(end.plusDays(1).atStartOfDay());
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            int i = 1;
+            ps.setTimestamp(i++, fromTs);
+            ps.setTimestamp(i++, toTs);
+
+            if (filtered) ps.setLong(i++, userId);
+
+            ps.setInt(i++, size);
+            ps.setInt(i++, offset);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                List<OrderRow> out = new ArrayList<>();
+                while (rs.next()) {
+                    out.add(new OrderRow(
+                            rs.getLong("order_id"),
+                            rs.getString("order_no"),
+                            rs.getString("first_item_name"),
+                            rs.getString("first_image_url"),
+                            rs.getInt("item_count"),
+                            rs.getInt("total_qty"),
+                            rs.getLong("total_price"),
+                            rs.getString("status"),
+                            rs.getTimestamp("created_at"),
+                            rs.getTimestamp("paid_at")
+                    ));
+                }
+                return out;
+            }
+        }
+    }
+
 
 }
 

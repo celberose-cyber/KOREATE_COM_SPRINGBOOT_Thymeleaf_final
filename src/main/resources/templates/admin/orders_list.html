@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${title}">주문 관리</title>
+</head>
+<body>
+
+<div th:replace="~{admin/_header :: adminHeader}"></div>
+<div th:replace="~{admin/_layout :: adminLayout(${title}, ~{::content})}">
+  <div th:fragment="content">
+
+    <div class="card">
+      <div class="card-hd">
+        <h3 style="margin:0;">주문 목록</h3>
+
+        <!-- ✅ 필터 표시: username(#id) -->
+        <div class="muted" th:if="${filterName != null}">
+          회원 필터링: <b th:text="${filterName}">user(#0)</b>
+          <a class="link" th:href="@{/admin/orders}">필터 해제</a>
+        </div>
+      </div>
+
+      <!-- ✅ username 변환 실패 메시지 (목록은 유지) -->
+      <div class="warn" th:if="${filterError != null}" th:text="${filterError}">
+        username 조회 오류
+      </div>
+
+      <!-- ✅ 기간/username/표시개수 필터 -->
+      <form method="get" th:action="@{/admin/orders}" class="filter">
+        <label>username</label>
+        <input type="text" name="username" placeholder="예: admin" th:value="${username}">
+
+        <label>시작</label>
+        <input type="date" name="start" th:value="${start}">
+
+        <label>종료</label>
+        <input type="date" name="end" th:value="${end}">
+
+        <label>표시</label>
+        <select name="size" class="sizeSel">
+          <option value="10"  th:selected="${size==10}">10</option>
+          <option value="20"  th:selected="${size==20}">20</option>
+          <option value="30"  th:selected="${size==30}">30</option>
+          <option value="50"  th:selected="${size==50}">50</option>
+          <option value="100" th:selected="${size==100}">100</option>
+        </select>
+
+        <button type="submit">조회</button>
+      </form>
+
+      <div th:if="${#lists.isEmpty(orders)}" class="muted" style="margin-top:10px;">
+        주문 데이터가 없습니다.
+      </div>
+
+      <table th:if="${!#lists.isEmpty(orders)}" class="tbl">
+        <thead>
+        <tr>
+          <th style="width:90px;">주문ID</th>
+          <th style="width:160px;">주문번호</th>
+          <th>대표상품</th>
+          <th style="width:100px;">품목 수</th>
+          <th style="width:100px;">총수량</th>
+          <th style="width:140px;">금액</th>
+          <th style="width:160px;">상태</th>
+          <th style="width:170px;">결제일</th>
+          <th style="width:170px;">생성일</th>
+          <th style="width:90px;">상세</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr th:each="o : ${orders}">
+          <td th:text="${o.orderId}">1</td>
+
+          <td>
+            <div style="font-weight:900;" th:text="${o.orderNo}">ORD-xxxx</div>
+          </td>
+
+          <td>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <img th:if="${o.firstImageUrl != null}"
+                   th:src="${o.firstImageUrl}"
+                   alt="thumb"
+                   style="width:44px;height:44px;object-fit:cover;border-radius:10px;border:1px solid #eee;">
+              <div>
+                <div style="font-weight:700;" th:text="${o.firstItemName}">상품명</div>
+                <div class="muted" style="font-size:12px;">
+                  <span th:text="'라인 ' + ${o.itemCount} + '개'">품목수 0개</span>
+                  ·
+                  <span th:text="'수량 ' + ${o.totalQty} + '개'">수량 0개</span>
+                </div>
+              </div>
+            </div>
+          </td>
+
+          <td th:text="${o.itemCount}">1</td>
+          <td th:text="${o.totalQty}">2</td>
+
+          <td>
+            <b th:text="${#numbers.formatInteger(o.totalPrice,0,'COMMA')}">0</b>원
+          </td>
+
+          <td>
+            <span class="badge"
+                  th:classappend="${o.status == 'CANCEL_REQUESTED'} ? ' danger' :
+                                  (${o.status == 'REFUNDED'} ? ' gray' :
+                                  (${o.status == 'CONFIRMED'} ? ' ok' : ''))"
+                  th:text="${o.status}">
+              PAID
+            </span>
+          </td>
+
+          <td class="muted" th:text="${o.paidAt}">2026-01-20 11:11:11</td>
+          <td class="muted" th:text="${o.createdAt}">2026-01-20 10:10:10</td>
+
+          <td>
+            <a class="btn" th:href="@{/admin/orders/{id}(id=${o.orderId})}">보기</a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+
+      <!-- ✅ 페이징 -->
+      <div style="margin-top:12px;"
+           th:replace="~{fragments/paging :: paging(
+             ${baseUrl},
+             ${page},
+             ${lastPage},
+             ${size},
+             ${params}
+           )}">
+      </div>
+
+    </div>
+
+    <style>
+      .card{border:1px solid #e5e5e5;border-radius:12px;background:#fff;padding:16px;margin-top:12px;}
+      .card-hd{display:flex;justify-content:space-between;gap:10px;align-items:flex-end;flex-wrap:wrap;}
+      .muted{color:#777;font-size:13px;}
+      .filter{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0 0;}
+      .filter input{border:1px solid #ddd;border-radius:10px;padding:8px 10px;min-width:180px;}
+      .filter button{border:1px solid #111;background:#111;color:#fff;border-radius:10px;padding:8px 12px;font-weight:900;cursor:pointer;}
+      .filter button:hover{background:#000;}
+      .tbl{width:100%;border-collapse:collapse;margin-top:12px;}
+      .tbl th,.tbl td{border-bottom:1px solid #eee;padding:10px;text-align:left;vertical-align:middle;}
+      .tbl th{background:#fafafa;font-weight:900;}
+      .btn{display:inline-block;border:1px solid #111;border-radius:10px;padding:6px 10px;background:#fff;color:#111;text-decoration:none;font-weight:900;}
+      .btn:hover{background:#111;color:#fff;}
+      .badge{display:inline-block;border:1px solid #ddd;background:#fff;border-radius:999px;padding:4px 10px;font-weight:900;font-size:12px;}
+      .badge.ok{border-color:#16a34a;color:#16a34a;}
+      .badge.danger{border-color:#ef4444;color:#ef4444;}
+      .badge.gray{border-color:#999;color:#666;}
+      .link{margin-left:8px;color:#111;font-weight:900;text-decoration:none;border-bottom:1px solid #111;}
+      .link:hover{opacity:.8;}
+      .sizeSel{min-width:90px;}
+
+      .warn{
+        margin-top:10px;
+        padding:10px 12px;
+        border:1px solid #f59e0b;
+        background:#fffbeb;
+        border-radius:10px;
+        color:#92400e;
+        font-size:13px;
+        font-weight:700;
+      }
+    </style>
+
+  </div>
+</div>
+
+</body>
+</html>

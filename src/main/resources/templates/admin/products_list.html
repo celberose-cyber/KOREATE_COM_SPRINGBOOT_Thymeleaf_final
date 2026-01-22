@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <title th:text="${title}">상품 관리</title>
+
+  <style>
+    /* ===== 공통 톤(현재 admin layout 스타일과 맞춤) ===== */
+    .muted{color:#777;font-size:12px;}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+    .btn{padding:8px 10px;border-radius:10px;border:1px solid #ddd;background:#fff;cursor:pointer;font-weight:900;}
+    .btn:hover{background:#f7f7f7;}
+    .btn-primary{border-color:#111;background:#111;color:#fff;}
+    .btn-primary:hover{background:#000;}
+    .btn-danger{border-color:#b42318;color:#b42318;background:#fff;}
+    .btn-danger:hover{background:#fff5f5;}
+    .input{padding:10px 12px;border:1px solid #ddd;border-radius:10px;box-sizing:border-box;}
+    .mini{height:32px;width:92px;padding:0 8px;font-size:12px;border-radius:10px;border:1px solid #ddd;}
+    .mini-btn{height:32px;padding:0 12px;font-size:12px;font-weight:900;border-radius:10px;border:1px solid #ddd;background:#fff;cursor:pointer;}
+    .mini-btn:hover{background:#f7f7f7;}
+    .mini-btn.danger{border-color:#b42318;color:#b42318;background:#fff;}
+    .mini-btn.danger:hover{background:#fff5f5;}
+
+    /* ===== 배지 ===== */
+    .badge-sale{
+      display:inline-block;padding:6px 10px;border-radius:999px;
+      font-size:12px;font-weight:900;border:1px solid #ff7a00;color:#ff7a00;background:#fff7f0;
+    }
+    .badge-normal{
+      display:inline-block;padding:6px 10px;border-radius:999px;
+      font-size:12px;font-weight:900;border:1px solid #ddd;color:#666;background:#fafafa;
+    }
+    .badge-soon{
+      display:inline-block;padding:6px 10px;border-radius:999px;
+      font-size:12px;font-weight:900;border:1px solid #b42318;color:#b42318;background:#fff5f5;
+      margin-left:6px;
+    }
+
+    /* ===== 카드/섹션 ===== */
+    .panel{
+      border:1px solid #eee;border-radius:12px;padding:12px;margin:12px 0;background:#fff;
+    }
+    .panel h3{margin:0 0 10px 0;font-size:15px;}
+    .help{
+      font-size:12px;color:#666;line-height:1.5;margin-top:6px;
+    }
+
+    /* ===== 테이블 ===== */
+    table{width:100%;border-collapse:collapse;}
+    th,td{border-bottom:1px solid #eee;padding:10px;text-align:left;font-size:14px;vertical-align:top;}
+    th{background:#fafafa;}
+    .col-name{min-width:260px;}
+    .name-wrap{display:flex;gap:10px;align-items:center;}
+    .thumb{width:44px;height:44px;border-radius:10px;border:1px solid #eee;object-fit:cover;flex:0 0 auto;background:#fff;}
+    .pname{
+      font-weight:900;color:#0b57d0;text-decoration:none;display:inline-block;line-height:1.25;
+      max-width:520px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .pname:hover{text-decoration:underline;}
+    .admin-cell{display:grid;gap:6px;justify-content:start;}
+    .admin-row{display:flex;gap:6px;align-items:center;justify-content:flex-start;flex-wrap:wrap;}
+    .admin-help{font-size:12px;color:#666;line-height:1.4;margin-bottom:4px;}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+    .right{justify-content:flex-end;}
+    .split{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
+
+    /* ===== 선택 체크박스 ===== */
+    .chk{transform:scale(1.1);}
+
+    /* ===== 가격 표시 ===== */
+    .pricebox{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;}
+    .strike{color:#888;text-decoration:line-through;font-weight:800;font-size:12px;}
+    .saleprice{font-weight:900;}
+
+    /* ===== 반응형 ===== */
+    @media (max-width: 980px){
+      .pname{max-width:320px;}
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ✅ 관리자 공통 헤더/레이아웃 사용 -->
+<div th:replace="~{admin/_header :: adminHeader}"></div>
+<div th:replace="~{admin/_layout :: adminLayout(${title}, ~{::content})}">
+  <div th:fragment="content">
+
+    <!-- 상단 요약 -->
+    <div class="split">
+      <div class="muted">
+        총 <b th:text="${total}">0</b> 건
+      </div>
+      <div class="muted">
+        * 세일 표시는 <b>saleNow(기간 + 세일가 + NOW 조건)</b> 기준으로 통일하는 것을 권장합니다.
+      </div>
+    </div>
+
+    <!-- ================== 검색/필터(유저 products/list.html UX 참고) ================== -->
+    <div class="panel">
+      <h3>검색/정렬</h3>
+
+      <form class="row" method="get" th:action="@{/admin/products}">
+        <select class="input" name="category" style="max-width:200px;" onchange="this.form.submit()">
+          <option value="all" th:selected="${category=='all'}">전체</option>
+          <option value="computer" th:selected="${category=='computer'}">컴퓨터</option>
+          <option value="monitor" th:selected="${category=='monitor'}">모니터</option>
+          <option value="mouse" th:selected="${category=='mouse'}">마우스</option>
+          <option value="keyboard" th:selected="${category=='keyboard'}">키보드</option>
+          <option value="speaker" th:selected="${category=='speaker'}">스피커</option>
+        </select>
+
+        <input class="input" name="q" th:value="${q}" placeholder="상품명 검색" style="max-width:280px;"/>
+
+        <select class="input" name="sort" style="max-width:200px;" onchange="this.form.submit()">
+          <option value="updated"  th:selected="${sort=='updated'}">최신업데이트</option>
+          <option value="new"      th:selected="${sort=='new'}">등록순</option>
+          <option value="priceAsc" th:selected="${sort=='priceAsc'}">가격↑</option>
+          <option value="priceDesc" th:selected="${sort=='priceDesc'}">가격↓</option>
+          <option value="rating"   th:selected="${sort=='rating'}">평점순</option>
+          <option value="review"   th:selected="${sort=='review'}">리뷰순</option>
+          <option value="purchase" th:selected="${sort=='purchase'}">구매순</option>
+        </select>
+
+        <select class="input" name="size" style="max-width:140px;" onchange="this.form.submit()">
+          <option value="10" th:selected="${size==10}">10개</option>
+          <option value="20" th:selected="${size==20}">20개</option>
+          <option value="30" th:selected="${size==30}">30개</option>
+          <option value="50" th:selected="${size==50}">50개</option>
+        </select>
+
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#333;">
+          <input type="checkbox" name="saleOnly" value="1" th:checked="${saleOnly==1}" onchange="this.form.submit()">
+          세일중만
+        </label>
+
+        <input type="hidden" name="page" value="1"/>
+        <button class="btn btn-primary" type="submit">검색</button>
+
+        <a class="btn" th:href="@{/admin/products(category=${category}, sort=${sort}, size=${size}, saleOnly=${saleOnly})}">검색어 초기화</a>
+      </form>
+
+      <div class="help">
+        - “세일중만”은 <b>saleNow 기준</b>으로 필터링되는 것을 권장합니다. (현재 DAO가 on_sale 기반이면, DAO에서 조건을 NOW() + 기간으로 바꾸세요)
+      </div>
+    </div>
+
+    <!-- ================== 일괄 세일(퍼센트 + 기간) ================== -->
+    <div class="panel">
+      <h3>선택상품 일괄 세일</h3>
+
+      <form id="bulkSaleForm" class="row" method="post" th:action="@{/admin/products/sale-bulk}">
+        <!-- CSRF 사용중이면 아래 주석 해제 -->
+        <!-- <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/> -->
+
+        <input type="hidden" name="returnUrl" th:value="${returnUrl}"/>
+
+        <button class="btn" type="button" onclick="toggleAll(true)">전체선택</button>
+        <button class="btn" type="button" onclick="toggleAll(false)">전체해제</button>
+
+        <span class="muted">선택수: <b id="selCount">0</b></span>
+
+        <span class="muted">할인율(%)</span>
+        <input class="mini" type="number" name="percent" min="1" max="99" value="10" required/>
+
+        <span class="muted">시작</span>
+        <input class="input" style="max-width:230px;" type="datetime-local" name="saleStartAt" required/>
+
+        <span class="muted">종료</span>
+        <input class="input" style="max-width:230px;" type="datetime-local" name="saleEndAt" required/>
+
+        <button class="btn btn-primary" type="submit" onclick="return confirmBulk('선택 상품에 세일을 적용할까요?')">선택 세일 적용</button>
+      </form>
+
+      <form id="bulkCancelForm" class="row" method="post" th:action="@{/admin/products/sale-bulk-cancel}" style="margin-top:8px;">
+        <!-- CSRF 사용중이면 아래 주석 해제 -->
+        <!-- <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/> -->
+        <input type="hidden" name="returnUrl" th:value="${returnUrl}"/>
+        <button class="btn btn-danger" type="submit" onclick="return confirmBulk('선택 상품의 세일을 해제할까요?')">선택 세일 해제</button>
+        <div class="help">
+          - “세일 해제”는 기간(sale_start_at/end_at)을 NULL로 만드는 방식입니다. 혼선 방지를 위해 sale_price도 NULL로 같이 내리는 것을 권장합니다.
+        </div>
+      </form>
+    </div>
+
+    <!-- ================== TABLE ================== -->
+    <table>
+      <colgroup>
+        <col style="width:44px;">   <!-- 체크 -->
+        <col style="width:70px;">   <!-- ID -->
+        <col style="width:110px;">  <!-- 카테고리 -->
+        <col style="width:auto;">   <!-- 이름 -->
+        <col style="width:120px;">  <!-- 정가 -->
+        <col style="width:120px;">  <!-- 세일가 -->
+        <col style="width:160px;">  <!-- 세일 상태 -->
+        <col style="width:220px;">  <!-- 세일 종료 -->
+        <col style="width:330px;">  <!-- 관리 -->
+      </colgroup>
+
+      <thead>
+      <tr>
+        <th>
+          <input class="chk" type="checkbox" id="chkAll" onclick="onMasterCheck(this)">
+        </th>
+        <th>ID</th>
+        <th>카테고리</th>
+        <th class="col-name">상품명</th>
+        <th>정가</th>
+        <th>세일가</th>
+        <th>세일 상태</th>
+        <th>세일 종료</th>
+        <th>관리</th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <tr th:each="p : ${list}">
+        <td>
+          <input class="chk rowChk" type="checkbox" name="ids" th:value="${p.id}">
+        </td>
+
+        <td th:text="${p.id}">1</td>
+        <td th:text="${p.category}">monitor</td>
+
+        <!-- 이름 -->
+        <td class="col-name">
+          <div class="name-wrap">
+            <img class="thumb" th:if="${p.imageUrl != null}" th:src="${p.imageUrl}" alt="">
+            <div class="thumb" th:if="${p.imageUrl == null}" style="display:flex;align-items:center;justify-content:center;color:#aaa;font-size:12px;">no</div>
+
+            <div style="min-width:0;">
+              <a class="pname" th:href="${p.detailUrl}" target="_blank" th:text="${p.name}">상품명</a>
+              <div class="muted mono" th:text="${p.pcode != null ? 'pcode: ' + p.pcode : ''}"></div>
+            </div>
+          </div>
+        </td>
+
+        <td th:text="${p.price != null ? #numbers.formatInteger(p.price,0,'COMMA') : '-'}">0</td>
+
+        <!-- 세일가 -->
+        <td th:text="${p.salePrice != null ? #numbers.formatInteger(p.salePrice,0,'COMMA') : '-'}">-</td>
+
+        <!-- 세일 상태: saleNow 기준으로 표시 권장 -->
+        <td>
+          <!-- ✅ saleNow가 true면 SALE -->
+          <span class="badge-sale" th:if="${p.saleNow}">SALE</span>
+          <span class="badge-normal" th:if="${!p.saleNow}">일반</span>
+
+          <!-- ✅ 세일 종료 임박 강조 (endAt - now <= 24h) -->
+          <!-- p.saleEndAt이 String이어도, 아래는 단순 표시용: Controller/DTO에서 secondsLeft 같은 값을 주면 더 정확합니다.
+               여기서는 "오늘/내일" 느낌만이라도 주려고, 문자열 패턴이 있으면 표시하도록 최소 구현 -->
+          <span class="badge-soon" th:if="${p.saleNow and p.saleEndAt != null and #strings.contains(p.saleEndAt, '2026-')}"
+                title="세일 종료 임박(표시용)">임박</span>
+        </td>
+
+        <!-- 세일 종료 -->
+        <td>
+          <div th:if="${p.saleEndAt != null}">
+            <div><b th:text="${p.saleEndAt}">-</b></div>
+            <div class="muted" th:if="${p.saleNow}">지금 세일중</div>
+            <div class="muted" th:if="${!p.saleNow}">세일 아님</div>
+          </div>
+          <div class="muted" th:if="${p.saleEndAt == null}">-</div>
+        </td>
+
+        <!-- 관리 -->
+        <td>
+          <div class="admin-cell">
+
+            <div class="admin-help">
+              정가/세일가 수정 후 <b>저장</b>. (세일 “적용/해제”는 위 <b>일괄 세일</b>을 권장)
+            </div>
+
+            <!-- 가격 저장 -->
+            <form th:action="@{/admin/products/{id}/price(id=${p.id})}" method="post" class="admin-row">
+              <!-- CSRF 사용중이면 아래 주석 해제 -->
+              <!-- <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/> -->
+              <input type="hidden" name="returnUrl" th:value="${returnUrl}"/>
+
+              <input class="mini" name="price" type="number" min="0"
+                     th:value="${p.price}" placeholder="정가">
+
+              <input class="mini" name="salePrice" type="number" min="0"
+                     th:value="${p.salePrice}" placeholder="세일가">
+
+              <button class="mini-btn" type="submit">저장</button>
+            </form>
+
+            <!-- 개별 삭제 -->
+            <div class="admin-row">
+              <form th:action="@{/admin/products/{id}/delete(id=${p.id})}" method="post"
+                    onsubmit="return confirm('삭제하시겠습니까?');">
+                <!-- CSRF 사용중이면 아래 주석 해제 -->
+                <!-- <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/> -->
+                <input type="hidden" name="returnUrl" th:value="${returnUrl}"/>
+                <button class="mini-btn danger" type="submit">삭제</button>
+              </form>
+
+              <span class="muted">
+                updated: <span th:text="${p.updatedAt}">-</span>
+              </span>
+            </div>
+
+          </div>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+
+    <!-- ✅ 공통 페이징 fragment 사용 -->
+    <div th:replace="~{fragments/paging :: paging(
+        ${baseUrl}, ${page}, ${lastPage}, ${size}, ${params}
+    )}"></div>
+
+    <!-- ===== JS: 선택 ids를 두 폼에 주입 ===== -->
+    <script>
+      function getSelectedIds(){
+        return Array.from(document.querySelectorAll('.rowChk:checked')).map(el => el.value);
+      }
+
+      function syncSelectedToForms(){
+        const ids = getSelectedIds();
+        document.getElementById('selCount').textContent = ids.length;
+
+        // 기존 hidden 제거
+        document.querySelectorAll('#bulkSaleForm input[name="ids"], #bulkCancelForm input[name="ids"]').forEach(el => el.remove());
+
+        // 폼에 ids 추가
+        const saleForm = document.getElementById('bulkSaleForm');
+        const cancelForm = document.getElementById('bulkCancelForm');
+
+        ids.forEach(id => {
+          const h1 = document.createElement('input');
+          h1.type = 'hidden';
+          h1.name = 'ids';
+          h1.value = id;
+          saleForm.appendChild(h1);
+
+          const h2 = document.createElement('input');
+          h2.type = 'hidden';
+          h2.name = 'ids';
+          h2.value = id;
+          cancelForm.appendChild(h2);
+        });
+
+        // master 체크 상태 동기화
+        const all = document.querySelectorAll('.rowChk');
+        const checked = document.querySelectorAll('.rowChk:checked');
+        const master = document.getElementById('chkAll');
+        if (master){
+          master.checked = (all.length > 0 && all.length === checked.length);
+          master.indeterminate = (checked.length > 0 && checked.length < all.length);
+        }
+      }
+
+      function onMasterCheck(master){
+        const rows = document.querySelectorAll('.rowChk');
+        rows.forEach(chk => chk.checked = master.checked);
+        syncSelectedToForms();
+      }
+
+      function toggleAll(flag){
+        const rows = document.querySelectorAll('.rowChk');
+        rows.forEach(chk => chk.checked = flag);
+        syncSelectedToForms();
+      }
+
+      function confirmBulk(msg){
+        const ids = getSelectedIds();
+        if (!ids.length){
+          alert('선택된 상품이 없습니다.');
+          return false;
+        }
+        return confirm(msg + ' (선택 ' + ids.length + '개)');
+      }
+
+      // 개별 체크 변경 감지
+      document.addEventListener('change', (e) => {
+        if (e.target && e.target.classList.contains('rowChk')) {
+          syncSelectedToForms();
+        }
+      });
+
+      // 최초 동기화
+      syncSelectedToForms();
+    </script>
+
+  </div>
+</div>
+</body>
+</html>

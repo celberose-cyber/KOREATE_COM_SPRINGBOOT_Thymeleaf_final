@@ -19,6 +19,15 @@
         </div>
 
         <!-- ✅ 테이블 대신 “필드 리스트” 스타일 -->
+        <div class="kv-row">
+            <div class="kv-k">아이디</div>
+            <div class="kv-v" th:text="${user.username}">jack2</div>
+        </div>
+
+        <div class="kv-row">
+            <div class="kv-k">인증 이메일</div>
+            <div class="kv-v" th:text="${user.verifyEmail}">jack2@gmail.com</div>
+        </div>
         <div class="kv">
             <div class="kv-row">
                 <div class="kv-k">이름</div>

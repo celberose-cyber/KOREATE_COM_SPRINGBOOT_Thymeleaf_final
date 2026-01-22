@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{admin/_header :: adminHeader}"></div>
+
+<div th:replace="~{admin/_layout :: adminLayout(${title}, ~{::content})}">
+  <div th:fragment="content">
+
+    <!-- ✅ 검색/정렬/개수 -->
+    <form method="get" th:action="@{/admin/members}" class="row"
+          style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <input class="input" name="q" th:value="${q}" placeholder="아이디/이름 검색" style="max-width:260px;"/>
+
+      <select class="input" name="sort" style="max-width:160px;">
+        <option value="idDesc" th:selected="${sort=='idDesc'}">ID ↓</option>
+        <option value="idAsc"  th:selected="${sort=='idAsc'}">ID ↑</option>
+
+        <option value="newDesc" th:selected="${sort=='newDesc'}">등록일 ↓</option>
+        <option value="newAsc"  th:selected="${sort=='newAsc'}">등록일 ↑</option>
+      </select>
+
+      <select class="input" name="size" style="max-width:140px;">
+        <option value="10" th:selected="${size==10}">10개</option>
+        <option value="20" th:selected="${size==20}">20개</option>
+        <option value="30" th:selected="${size==30}">30개</option>
+        <option value="50" th:selected="${size==50}">50개</option>
+      </select>
+
+      <button class="btn btn-primary" type="submit">검색</button>
+    </form>
+
+    <table class="admin-table" style="margin-top:12px;">
+      <thead>
+      <tr>
+        <th style="width:90px;">ID</th>
+        <th style="width:160px;">아이디</th>
+        <th style="width:160px;">이름</th>
+        <th style="width:170px;">이메일</th>
+        <th style="width:110px;">등급</th>
+        <th style="width:110px;">권한</th>
+        <th style="width:110px;">등록일</th>
+        <th style="width:140px;"></th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <tr th:each="u : ${list}">
+        <td th:text="${u.userId}">1</td>
+        <td th:text="${u.username}">jack</td>
+        <td th:text="${u.name}">홍길동</td>
+        <td th:text="${u.verifyEmail}">a@a.com</td>
+        <td th:text="${u.grade}">GOLD</td>
+        <td th:text="${u.role}">ADMIN</td>
+        <td th:text="${u.createdAt != null ? #temporals.format(u.createdAt, 'yyyy-MM-dd HH:mm:ss') : '-'}">-</td>
+
+        <td>
+          <a class="btn" th:href="@{/admin/members/{id}(id=${u.userId})}">보기/수정</a>
+        </td>
+      </tr>
+
+      <tr th:if="${#lists.isEmpty(list)}">
+        <td colspan="7" style="padding:18px; color:#666;">데이터가 없습니다.</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <!-- ✅ 페이징 -->
+    <div style="margin-top:12px;"
+         th:replace="~{fragments/paging :: paging(
+           ${baseUrl},
+           ${page},
+           ${lastPage},
+           ${size},
+           ${params}
+         )}">
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

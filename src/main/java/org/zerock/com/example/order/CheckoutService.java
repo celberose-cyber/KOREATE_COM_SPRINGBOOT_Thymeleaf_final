@@ -6,6 +6,7 @@ import org.zerock.com.example.cart.CartItemDTO;
 import org.zerock.com.example.common.DBUtil;
 import org.zerock.com.example.pay.kakao.KakaoReadyResponse;
 import org.zerock.com.example.pay.kakao.KakaoPayService;
+import org.zerock.com.example.product.ProductDAO;
 import org.zerock.com.example.user.*;
 
 import java.sql.Connection;
@@ -22,18 +23,23 @@ public class CheckoutService {
     private final PointLedgerDAO pointLedgerDAO;
     private final KakaoPayService kakaoPayService;
 
+
+    private final ProductDAO productDAO;   // ✅ 추가
+
     public CheckoutService(CartDAO cartDAO,
                            OrderDAO orderDAO,
                            UserDAO userDAO,
                            GradePolicyDAO gradePolicyDAO,
                            PointLedgerDAO pointLedgerDAO,
-                           KakaoPayService kakaoPayService) {
+                           KakaoPayService kakaoPayService,
+                           ProductDAO productDAO) { // ✅ 생성자 주입
         this.cartDAO = cartDAO;
         this.orderDAO = orderDAO;
         this.userDAO = userDAO;
         this.gradePolicyDAO = gradePolicyDAO;
         this.pointLedgerDAO = pointLedgerDAO;
         this.kakaoPayService = kakaoPayService;
+        this.productDAO = productDAO;
     }
 
     // ✅ DB: 주문 draft 생성 + itemName/qty/total 계산
@@ -145,7 +151,7 @@ public class CheckoutService {
                 userDAO.addTotalSpent(con, userId, total);
 
                 // 등급 재산정
-                long newTotal = orderDAO.totalSpentByUser(con, userId);
+                long newTotal = userDAO.getTotalSpent(con, userId);
                 GradePolicyDTO policy = gradePolicyDAO.findPolicyByTotalSpent(con, newTotal);
                 if (policy == null) throw new IllegalStateException("grade_policy not found for total=" + newTotal);
 
@@ -226,8 +232,27 @@ public class CheckoutService {
         try (Connection con = DBUtil.getConnection()) {
             con.setAutoCommit(false);
             try {
+                // 1️⃣ 주문 상태 PAID → CONFIRMED
                 boolean ok = orderDAO.markConfirmedIfPaid(con, orderId, userId);
-                if (!ok) throw new IllegalStateException("Order not in PAID or not yours: " + orderId);
+                if (!ok) {
+                    throw new IllegalStateException(
+                            "Order not in PAID or not yours: " + orderId
+                    );
+                }
+
+                // 2️⃣ 주문 아이템 목록 조회
+                List<OrderItemDTO> items =
+                        orderDAO.listOrderItems(con, orderId);
+
+                // 3️⃣ 상품별 purchase_count 증가
+                for (OrderItemDTO it : items) {
+                    productDAO.increasePurchaseCount(
+                            con,
+                            it.getProductId(),
+                            it.getQuantity()
+                    );
+                }
+
                 con.commit();
             } catch (Exception e) {
                 con.rollback();
@@ -237,6 +262,7 @@ public class CheckoutService {
             }
         }
     }
+
     public void requestCancel(long userId, long orderId, String reason) throws Exception {
         try (Connection con = DBUtil.getConnection()) {
             con.setAutoCommit(false);
@@ -252,6 +278,61 @@ public class CheckoutService {
             }
         }
     }
+    public void confirmCancelByAdmin(long orderId) throws Exception {
+        try (Connection con = DBUtil.getConnection()) {
+            con.setAutoCommit(false);
+            try {
+                // 1) 상태를 REFUNDED로 전환 (CANCEL_REQUESTED에서만 1회 성공)
+                boolean ok = orderDAO.markRefundedIfCancelRequested(con, orderId);
+                if (!ok) {
+                    throw new IllegalStateException("취소요청 상태가 아닙니다. orderId=" + orderId);
+                }
+
+                // 2) 주문/회원 정보
+                OrderDAO.RefundBase base = orderDAO.findRefundBase(con, orderId);
+                if (base == null) throw new IllegalStateException("order not found: " + orderId);
+
+                long userId = base.userId();
+                long totalPrice = base.totalPrice();
+
+                // 3) 이 주문으로 적립된 포인트 합
+                long earned = pointLedgerDAO.sumEarnedPointsByOrder(con, orderId);
+
+                // ✅ 중복 회수 방지: 이미 ORDER_REVOKE가 있으면 earned=0 처리
+                if (earned > 0 && pointLedgerDAO.existsRevokeByOrder(con, orderId)) {
+                    earned = 0;
+                }
+
+                // 4) 포인트 회수 + ledger 기록
+                if (earned > 0) {
+                    userDAO.addPointBalance(con, userId, -earned);
+                    pointLedgerDAO.insert(con, userId, orderId, -earned, "ORDER_REVOKE");
+                }
+
+                // 5) 누적 구매금액 차감
+                userDAO.addTotalSpent(con, userId, -totalPrice);
+
+                // 6) 등급 재산정 (✅ users.total_spent 기준)
+                long newTotal = userDAO.getTotalSpent(con, userId);
+                GradePolicyDTO policy = gradePolicyDAO.findPolicyByTotalSpent(con, newTotal);
+                if (policy == null) throw new IllegalStateException("grade_policy not found for total=" + newTotal);
+
+                userDAO.updateGrade(con, userId, policy.getGrade());
+
+                con.commit();
+            } catch (Exception e) {
+                con.rollback();
+                throw e;
+            } finally {
+                con.setAutoCommit(true);
+            }
+        }
+    }
+
+
+
+
+
 
 }
 

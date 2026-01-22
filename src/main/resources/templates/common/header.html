@@ -1,88 +1,150 @@
-
-
 <div th:fragment="header">
     <link rel="stylesheet" th:href="@{/css/main.css}">
-    <header style="padding:12px; border-bottom:1px solid #ddd; margin-bottom:16px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
 
-            <div>
-                <a th:href="@{/}" style="font-weight:700; text-decoration:none;">
-                    KOREATE COM
-                </a>
-            </div>
-<!--            기존 <nav style="display:flex; gap:10px; align-items:center;">-->
+    <header class="site-header">
+        <div class="site-header-inner">
+            <a class="brand" th:href="@{/}">KOREATE COM</a>
 
-            <nav style="
-                display:flex;
-                gap:10px;
-                align-items:center;
-                flex-wrap:nowrap;
-                white-space:nowrap;
-                overflow-x:auto;
-                ">
-                <a th:href="@{/products(category='computer')}">컴퓨터(본체)</a>
-                <a th:href="@{/products(category='mouse')}">마우스</a>
-                <a th:href="@{/products(category='keyboard')}">키보드</a>
-                <a th:href="@{/products(category='monitor')}">모니터</a>
-                <a th:href="@{/products(category='speaker')}">스피커</a>
-                <a th:href="@{/cart(returnUrl=${currentUrl})}">장바구니</a>
+            <nav class="topnav">
 
-
-
-                <a th:href="@{/my}" style="font-weight:600;">회원정보</a>
-                <a th:href="@{/chat}">고객안내</a>
-
-                <!-- 로그인 전 -->
-                <th:block th:if="${session.LOGIN_USER == null}">
-                    <a th:href="@{/login}">로그인</a>
-                    <a th:href="@{/register}">회원가입</a>
-                </th:block>
-
-                <!-- 로그인 후 -->
-                <th:block th:if="${session.LOGIN_USER != null}">
-                    <span>
-                        <b th:text="${session.LOGIN_USER.name}">홍길동</b>님
-                    </span>
-                    |
-                    등급:
-                    <span th:class="'grade-' + ${#strings.toLowerCase(session.LOGIN_USER.grade)}">
-                        <b th:text="${session.LOGIN_USER.grade}">GOLD</b>
-                    </span>
-                    <img
-                            th:src="@{/images/grades/{g}.svg(
-                            g=${#strings.toLowerCase(session.LOGIN_USER.grade)}
-                        )}"
-                            alt="grade"
-                            style="height:18px; vertical-align:middle; margin-left:4px;"
-                    />
-                    |
-                    누적:
-                    <span th:text="${#numbers.formatInteger(session.LOGIN_USER.totalSpent, 0, 'COMMA')}">0</span>원
-                    |
-                    포인트:
-                    <span th:text="${#numbers.formatInteger(session.LOGIN_USER.pointBalance, 0, 'COMMA')}">0</span>P
-                    |
-                    권한:
-                    <span th:text="${session.LOGIN_USER.role}">USER</span>
-                    <!-- ✅ 주문목록으로 -->
-                    |
-                    <a th:href="@{/my/orders}"
-                       style="font-weight:600; text-decoration:none;">
-                        주문목록
+                <!-- ✅ 상품 드롭다운 -->
+                <div class="nav-item dropdown" id="productDropdown">
+                    <a class="nav-link" href="#" aria-haspopup="true" aria-expanded="false">
+                        상품 <span class="caret">▾</span>
                     </a>
 
-                    <!-- ✅ 로그아웃 -->
-                    |
-                    <form th:action="@{/logout}"  style="display:inline;">
-                        <button type="submit"
-                                style="border:none; background:none; cursor:pointer; font-weight:600;">
-                            로그아웃
-                        </button>
-                    </form>
+                    <div class="dropdown-menu" role="menu">
+                        <a class="dropdown-item" th:href="@{/products(category='computer')}">컴퓨터(본체)</a>
+                        <a class="dropdown-item" th:href="@{/products(category='monitor')}">모니터</a>
+                        <a class="dropdown-item" th:href="@{/products(category='mouse')}">마우스</a>
+                        <a class="dropdown-item" th:href="@{/products(category='keyboard')}">키보드</a>
+                        <a class="dropdown-item" th:href="@{/products(category='speaker')}">스피커</a>
+                    </div>
+                </div>
+
+                <!-- ✅ 알림마당 드롭다운 (공지사항/건의사항 묶기) -->
+                <div class="nav-item dropdown" id="noticeDropdown">
+                    <a class="nav-link" href="#" aria-haspopup="true" aria-expanded="false">
+                        알림마당 <span class="caret">▾</span>
+                    </a>
+
+                    <div class="dropdown-menu" role="menu">
+                        <a class="dropdown-item" th:href="@{/notices}">공지사항</a>
+                        <a class="dropdown-item" th:href="@{/suggests}">건의사항</a>
+                    </div>
+                </div>
+
+                <a class="nav-link" th:href="@{/cart(returnUrl=${currentUrl})}">장바구니</a>
+                <a class="nav-link" th:href="@{/chat}">고객안내</a>
+
+                <th:block th:if="${session.LOGIN_USER == null}">
+                    <a class="nav-link" th:href="@{/login}">로그인</a>
+                    <a class="nav-link" th:href="@{/register}">회원가입</a>
+                </th:block>
+
+                <th:block th:if="${session.LOGIN_USER != null}">
+                    <a class="nav-link" th:href="@{/my}" style="font-weight:800;">회원정보</a>
+                    <a class="nav-link" th:href="@{/my/orders}" style="font-weight:800;">주문목록</a>
+
+                    <a class="nav-link"
+                       th:if="${session.LOGIN_USER.role == 'ADMIN'}"
+                       th:href="@{/admin}">
+                        관리자페이지
+                    </a>
+
+                    <a class="nav-link" th:href="@{/logout}" style="font-weight:800;">로그아웃</a>
                 </th:block>
             </nav>
         </div>
     </header>
+
+    <style>
+        .site-header{ padding:12px; border-bottom:1px solid #ddd; margin-bottom:16px; }
+        .site-header-inner{ display:flex; justify-content:space-between; align-items:center; gap:12px; }
+        .brand{ font-weight:900; text-decoration:none; color:#111; }
+
+        .topnav{ display:flex; gap:10px; align-items:center; flex-wrap:nowrap; white-space:nowrap; }
+
+        .nav-link{
+          text-decoration:none;
+          font-weight:700;
+          padding:8px 10px;
+          border-radius:10px;
+          color:#111;
+          display:inline-flex;
+          align-items:center;
+          gap:6px;
+        }
+        .nav-link:hover{ background:#f5f5f5; }
+
+        /* 관리자 링크 조금 강조(선택) */
+        .admin-link{
+          border:1px solid #111;
+        }
+        .admin-link:hover{
+          background:#111;
+          color:#fff;
+        }
+
+        .dropdown{ position:relative; }
+        .caret{ font-weight:900; }
+
+        .dropdown-menu{
+          position:absolute;
+          top:100%;
+          left:0;
+          min-width:170px;
+          margin-top:8px;
+          background:#fff;
+          border:1px solid #e5e5e5;
+          border-radius:12px;
+          box-shadow:0 10px 24px rgba(0,0,0,0.08);
+          padding:8px;
+          display:none;
+          z-index:9999;
+        }
+
+        .dropdown-item{
+          display:block;
+          padding:10px 10px;
+          border-radius:10px;
+          text-decoration:none;
+          color:#111;
+          font-weight:800;
+        }
+        .dropdown-item:hover{ background:#f7f7f7; }
+
+        @media (hover:hover){
+          .dropdown:hover .dropdown-menu{ display:block; }
+        }
+    </style>
+
+    <script>
+        (function(){
+          function bindDropdown(dropdownId){
+            const dd = document.getElementById(dropdownId);
+            if (!dd) return;
+
+            const link = dd.querySelector(".nav-link");
+            const menu = dd.querySelector(".dropdown-menu");
+
+            link.addEventListener("click", (e) => {
+              e.preventDefault();
+              const opened = menu.style.display === "block";
+              menu.style.display = opened ? "none" : "block";
+              link.setAttribute("aria-expanded", String(!opened));
+            });
+
+            document.addEventListener("click", (e) => {
+              if (!dd.contains(e.target)) {
+                menu.style.display = "none";
+                link.setAttribute("aria-expanded", "false");
+              }
+            });
+          }
+
+          bindDropdown("productDropdown");
+          bindDropdown("noticeDropdown");
+        })();
+    </script>
 </div>
-
-

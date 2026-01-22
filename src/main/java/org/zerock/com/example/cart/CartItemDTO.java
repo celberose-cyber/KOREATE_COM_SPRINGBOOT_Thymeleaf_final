@@ -9,11 +9,21 @@ public class CartItemDTO {
     private long unitPrice;
     private int quantity;
 
+    private Boolean onSale;
+    private Long currentUnitPrice;
+    private Boolean priceChanged;
+
+    public Boolean getOnSale() { return onSale; }
+    public void setOnSale(Boolean onSale) { this.onSale = onSale; }
+
+    public Long getCurrentUnitPrice() { return currentUnitPrice; }
+    public void setCurrentUnitPrice(Long currentUnitPrice) { this.currentUnitPrice = currentUnitPrice; }
+
+    public Boolean getPriceChanged() { return priceChanged; }
+    public void setPriceChanged(Boolean priceChanged) { this.priceChanged = priceChanged; }
     // ===== getters / setters =====
 
-    public long getCartItemId() {
-        return cartItemId;
-    }
+    public long getCartItemId() {return cartItemId;}
 
     public void setCartItemId(long cartItemId) {
         this.cartItemId = cartItemId;

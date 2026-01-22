@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>관리자 대시보드</title>
+</head>
+<body>
+
+<div th:replace="~{admin/_header :: adminHeader}"></div>
+
+<div th:replace="~{admin/_layout :: adminLayout(${title}, ~{::content})}">
+  <div th:fragment="content">
+
+    <!-- 기간/페이지크기 필터 -->
+    <form method="get" th:action="@{/admin}" class="filter">
+      <label>시작</label>
+      <input type="date" name="start" th:value="${start}">
+      <label>종료</label>
+      <input type="date" name="end" th:value="${end}">
+
+      <label>표시</label>
+      <select name="size" class="sizeSel">
+        <option value="5"  th:selected="${size==5}">5</option>
+        <option value="10" th:selected="${size==10}">10</option>
+        <option value="20" th:selected="${size==20}">20</option>
+        <option value="30" th:selected="${size==30}">30</option>
+        <option value="50" th:selected="${size==50}">50</option>
+      </select>
+
+      <button type="submit">조회</button>
+    </form>
+
+    <div class="card">
+      <h3 style="margin:0 0 10px;">일자별 결제/매출</h3>
+
+      <div th:if="${#lists.isEmpty(daily)}" class="muted">
+        데이터가 없습니다.
+      </div>
+
+      <table th:if="${!#lists.isEmpty(daily)}" class="tbl">
+        <thead>
+        <tr>
+          <th>일자</th>
+          <th>결제건수(PAID+CONFIRMED)</th>
+          <th>매출합계(PAID+CONFIRMED)</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="d : ${daily}">
+          <td th:text="${d.day}">2026-01-20</td>
+          <td th:text="${d.paidCount}">0</td>
+          <td>
+            <b th:text="${#numbers.formatInteger(d.paidAmount,0,'COMMA')}">0</b>원
+          </td>
+        </tr>
+        </tbody>
+      </table>
+
+      <!-- ✅ 페이징 -->
+      <div style="margin-top:12px;"
+           th:replace="~{fragments/paging :: paging(
+             ${baseUrl},
+             ${page},
+             ${lastPage},
+             ${size},
+             ${params}
+           )}">
+      </div>
+    </div>
+
+    <style>
+      .card{border:1px solid #e5e5e5;border-radius:12px;background:#fff;padding:16px;margin-top:12px;}
+      .muted{color:#777;font-size:13px;}
+      .filter{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 12px;}
+      .filter input,.filter select{border:1px solid #ddd;border-radius:10px;padding:8px 10px;}
+      .filter button{border:1px solid #111;background:#111;color:#fff;border-radius:10px;padding:8px 12px;font-weight:900;cursor:pointer;}
+      .filter button:hover{background:#000;}
+      .tbl{width:100%;border-collapse:collapse;}
+      .tbl th,.tbl td{border-bottom:1px solid #eee;padding:10px;text-align:left;}
+      .tbl th{background:#fafafa;font-weight:900;}
+      .sizeSel{min-width:90px;}
+    </style>
+
+  </div>
+</div>
+
+</body>
+</html>

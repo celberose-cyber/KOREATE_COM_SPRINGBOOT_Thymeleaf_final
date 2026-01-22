@@ -1,28 +1,41 @@
 package org.zerock.com.example.product;
 
-import org.springframework.stereotype.Repository;
-
-
 public class ProductDTO {
-    private long id;                // ✅ DB 컬럼이 id 라고 가정 (product_id 쓰면 또 터짐)
+
+    private long id;
     private String category;
     private String pcode;
     private String name;
-    private long price;
+    private Long price;
+
     private String detailUrl;
     private String imageUrl;
+
     private String specText;
     private String extraText;
     private String regMonth;
+
     private Integer opinionCount;
     private Double rating;
     private Integer reviewCount;
 
-    private String source;          // danawa
+    private long purchaseCount;
+
+    private String source;
     private String createdAt;
     private String updatedAt;
 
-    // --- getters/setters ---
+    // 기존
+    private boolean onSale;      // 관리자 토글/표시용
+    private Long salePrice;
+
+    // ✅ 기간 세일
+    private String saleStartAt;  // DATETIME → String (현재 방식 유지)
+    private String saleEndAt;
+    private boolean saleNow;     // DB 계산 컬럼
+
+    /* ================= getters / setters ================= */
+
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
 
@@ -35,8 +48,8 @@ public class ProductDTO {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public long getPrice() { return price; }
-    public void setPrice(long price) { this.price = price; }
+    public Long getPrice() { return price; }
+    public void setPrice(Long price) { this.price = price; }
 
     public String getDetailUrl() { return detailUrl; }
     public void setDetailUrl(String detailUrl) { this.detailUrl = detailUrl; }
@@ -62,6 +75,9 @@ public class ProductDTO {
     public Integer getReviewCount() { return reviewCount; }
     public void setReviewCount(Integer reviewCount) { this.reviewCount = reviewCount; }
 
+    public long getPurchaseCount() { return purchaseCount; }
+    public void setPurchaseCount(long purchaseCount) { this.purchaseCount = purchaseCount; }
+
     public String getSource() { return source; }
     public void setSource(String source) { this.source = source; }
 
@@ -70,4 +86,30 @@ public class ProductDTO {
 
     public String getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
+
+    public boolean isOnSale() { return onSale; }
+    public void setOnSale(boolean onSale) { this.onSale = onSale; }
+
+    public Long getSalePrice() { return salePrice; }
+    public void setSalePrice(Long salePrice) { this.salePrice = salePrice; }
+
+    public String getSaleStartAt() { return saleStartAt; }
+    public void setSaleStartAt(String saleStartAt) { this.saleStartAt = saleStartAt; }
+
+    public String getSaleEndAt() { return saleEndAt; }
+    public void setSaleEndAt(String saleEndAt) { this.saleEndAt = saleEndAt; }
+
+    public boolean isSaleNow() { return saleNow; }
+    public void setSaleNow(boolean saleNow) { this.saleNow = saleNow; }
+
+    /* ================= 비즈니스 로직 ================= */
+
+    /** ✅ 최종 적용 단가 */
+    public long getEffectivePrice() {
+        long base = (price == null ? 0L : price);
+        if (saleNow && salePrice != null && salePrice > 0) {
+            return salePrice;
+        }
+        return base;
+    }
 }

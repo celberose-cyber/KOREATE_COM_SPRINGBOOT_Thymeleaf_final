@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="adminLayout(title, content)">
+    <div style="display:flex; gap:16px; min-height:70vh;">
+        <!-- sidebar -->
+        <aside style="width:220px; border:1px solid #eee; border-radius:12px; padding:12px;">
+            <div style="font-weight:900; margin-bottom:10px;">관리자</div>
+            <a class="nav-link" th:href="@{/admin}">대시보드</a>
+            <a class="a" th:href="@{/admin/members}">회원 관리</a>
+            <a class="a" th:href="@{/admin/products}">상품 관리</a>
+            <a class="a" th:href="@{/admin/notices}">공지 사항</a>
+            <a class="a" th:href="@{/admin/suggests}">건의 사항</a>
+            <a class="a" th:href="@{/admin/orders}">주문관리</a>
+            <a class="nav-link" th:href="@{/admin/crawl}">크롤링</a>
+        </aside>
+
+        <!-- content -->
+        <main style="flex:1; border:1px solid #eee; border-radius:12px; padding:16px;">
+            <h2 style="margin:0 0 12px 0;" th:text="${title}">제목</h2>
+
+            <div th:if="${message}" style="border:1px solid #b7ebc6;background:#f6fffa;color:#116329;
+           padding:10px 12px;border-radius:12px;font-weight:800;margin-bottom:10px;"
+                 th:text="${message}">메시지</div>
+
+            <div th:if="${error}" style="border:1px solid #f2b8b5;background:#fff5f5;color:#b42318;
+           padding:10px 12px;border-radius:12px;font-weight:800;margin-bottom:10px;"
+                 th:text="${error}">에러</div>
+
+            <div th:replace="${content}"></div>
+        </main>
+    </div>
+
+    <style>
+        .a{display:block; padding:10px 10px; border-radius:10px; font-weight:800; text-decoration:none; color:#111;}
+        .a:hover{background:#f7f7f7;}
+        .btn{padding:8px 10px;border-radius:10px;border:1px solid #ddd;background:#fff;cursor:pointer;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+        .btn-primary{border-color:#111;background:#111;color:#fff;}
+        .input{padding:10px 12px;border:1px solid #ddd;border-radius:10px;width:100%;box-sizing:border-box;}
+        table{width:100%; border-collapse:collapse;}
+        th,td{border-bottom:1px solid #eee; padding:10px; text-align:left; font-size:14px;}
+        th{background:#fafafa;}
+    </style>
+</div>
+</body>
+</html>

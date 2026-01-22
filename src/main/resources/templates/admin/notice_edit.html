@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:replace="~{admin/_header :: adminHeader}"></div>
+
+<div th:replace="~{admin/_layout :: adminLayout(${title}, ~{::content})}">
+  <div th:fragment="content">
+
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px;">
+      <a class="btn" th:href="@{/admin/notices}">← 목록</a>
+
+      <form th:action="@{/admin/notices/{id}/delete(id=${n.id})}" method="post"
+            onsubmit="return confirm('삭제하시겠습니까?');">
+        <button class="btn" type="submit">삭제</button>
+      </form>
+    </div>
+
+    <!-- ✅ 원문 미리보기(관리자 detail 역할) -->
+    <section class="panel">
+      <div class="panel-hd">
+        <div>
+          <div class="panel-title" th:text="${n.title}">제목</div>
+          <div class="panel-meta">
+            작성자: <b th:text="${n.createdByUsername}">admin</b>
+            · 작성일: <span th:text="${#dates.format(n.createdAt,'yyyy-MM-dd HH:mm')}"></span>
+            <span th:if="${n.updatedAt != null}">
+              · 수정일: <span th:text="${#dates.format(n.updatedAt,'yyyy-MM-dd HH:mm')}"></span>
+            </span>
+          </div>
+        </div>
+        <span class="badge">PREVIEW</span>
+      </div>
+
+      <div class="panel-body">
+        <pre class="pre" th:text="${n.content}">내용</pre>
+      </div>
+    </section>
+
+    <!-- ✅ 수정 폼 -->
+    <section class="panel" style="margin-top:12px;">
+      <div class="panel-hd">
+        <div class="panel-title">공지 수정</div>
+        <span class="badge">EDIT</span>
+      </div>
+
+      <form th:action="@{/admin/notices/{id}/edit(id=${n.id})}" method="post" class="form">
+        <label class="lbl">제목</label>
+        <input class="input" name="title" th:value="${n.title}" maxlength="200" required>
+
+        <label class="lbl" style="margin-top:10px;">내용</label>
+        <textarea class="input" name="content" rows="12" required
+                  th:text="${n.content}"></textarea>
+
+        <div style="margin-top:12px; display:flex; gap:8px;">
+          <button class="btn btn-primary" type="submit">저장</button>
+          <a class="btn" th:href="@{/admin/notices}">취소</a>
+        </div>
+      </form>
+    </section>
+
+  </div>
+</div>
+
+<style>
+  .panel{border:1px solid #eee; border-radius:12px; overflow:hidden; background:#fff;}
+  .panel-hd{display:flex; justify-content:space-between; align-items:flex-start;
+    gap:12px; padding:12px 14px; border-bottom:1px solid #eee; background:#fafafa;}
+  .panel-title{font-weight:900; font-size:16px;}
+  .panel-meta{margin-top:6px; color:#666; font-size:13px; font-weight:700;}
+  .panel-body{padding:14px;}
+  .pre{white-space:pre-wrap; margin:0; font-family:inherit; line-height:1.7; font-size:14px;}
+  .badge{display:inline-flex; align-items:center; padding:6px 10px; border-radius:999px;
+    border:1px solid #ddd; background:#fff; font-weight:900; font-size:12px;}
+  .form .lbl{display:block; font-weight:900; font-size:13px; margin-bottom:6px;}
+</style>
+
+</body>
+</html>

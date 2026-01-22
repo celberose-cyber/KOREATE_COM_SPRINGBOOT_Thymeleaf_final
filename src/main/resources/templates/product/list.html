@@ -6,7 +6,7 @@
   <style>
     .wrap { max-width: 1000px; margin: 0 auto; padding: 20px; }
     .topbar { display:flex; justify-content:space-between; align-items:center; gap:16px; }
-    .search { display:flex; gap:8px; }
+    .search { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 
     .grid {
       margin-top: 18px;
@@ -66,13 +66,37 @@
 
     .muted { color:#888; font-size:12px; }
 
+    /* ✅ SALE 배지 */
+    .badge-sale{
+      display:inline-block;
+      padding:2px 8px;
+      border-radius:999px;
+      background:#d32f2f;
+      color:#fff;
+      font-size:12px;
+      font-weight:900;
+      vertical-align:middle;
+    }
+    .strike{
+      color:#888;
+      text-decoration:line-through;
+      font-weight:700;
+      margin-left:8px;
+      font-size:13px;
+    }
+    .sale-price{
+      margin-left:8px;
+      font-weight:900;
+      color:#111;
+    }
+
     @media (max-width: 760px) {
       .grid { grid-template-columns: 1fr; }
       .thumb { width: 120px; height: 120px; }
     }
   </style>
+
   <style>
-    /* ... 기존 CSS 유지 ... */
     .pager { margin: 20px 0 10px; display:flex; gap:6px; justify-content:center; align-items:center; flex-wrap:wrap; }
     .pager a, .pager span {
       padding: 6px 10px; border:1px solid #ddd; border-radius:6px;
@@ -107,17 +131,42 @@
     <h2>카테고리: <span th:text="${category}">mouse</span></h2>
 
     <form class="search" th:action="@{/products}" method="get">
-      <input type="hidden" name="category" th:value="${category}"/>
+      <!-- ✅ 카테고리 드롭다운 -->
+      <select name="category" onchange="this.form.submit()">
+        <option value="mouse"    th:selected="${category == 'mouse'}">마우스</option>
+        <option value="keyboard" th:selected="${category == 'keyboard'}">키보드</option>
+        <option value="monitor"  th:selected="${category == 'monitor'}">모니터</option>
+        <option value="speaker"  th:selected="${category == 'speaker'}">스피커</option>
+        <option value="computer" th:selected="${category == 'computer'}">컴퓨터(본체)</option>
+      </select>
 
       <input name="q" th:value="${q}" placeholder="검색어" />
 
       <select name="sort" onchange="this.form.submit()">
-        <option value="new"       th:selected="${sort == 'new'}">최신순</option>
+        <!-- 기본은 업데이트순 -->
+        <option value="updated" th:selected="${sort == null or sort == '' or sort == 'updated'}">업데이트순</option>
+        <option value="new"     th:selected="${sort == 'new'}">등록순(신규)</option>
+
         <option value="priceAsc"  th:selected="${sort == 'priceAsc'}">가격 낮은순</option>
         <option value="priceDesc" th:selected="${sort == 'priceDesc'}">가격 높은순</option>
         <option value="rating"    th:selected="${sort == 'rating'}">평점순</option>
         <option value="review"    th:selected="${sort == 'review'}">리뷰 많은순</option>
       </select>
+
+      <!-- ✅ 페이지당 상품수 -->
+      <select name="size" onchange="this.form.submit()">
+        <option value="10" th:selected="${size == 10}">10개</option>
+        <option value="20" th:selected="${size == 20}">20개</option>
+        <option value="30" th:selected="${size == 30}">30개</option>
+      </select>
+
+      <!-- ✅ 세일중만 보기 -->
+      <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#333;">
+        <input type="checkbox" name="saleOnly" value="1"
+               th:checked="${saleOnly == 1}"
+               onchange="this.form.submit()">
+        세일중만
+      </label>
 
       <button type="submit">검색</button>
     </form>
@@ -126,13 +175,15 @@
   <div class="grid">
     <div class="card" th:each="p : ${list}">
 
-      <a class="thumb" th:href="@{/product(id=${p.id})}">
+      <!-- ✅ 썸네일 클릭도 returnUrl 전달 -->
+      <a class="thumb" th:href="@{/product(id=${p.id}, returnUrl=${returnUrl})}">
         <img th:if="${p.imageUrl != null}" th:src="${p.imageUrl}" alt="thumbnail">
         <div th:if="${p.imageUrl == null}" class="muted">no image</div>
       </a>
 
       <div class="info">
-        <a class="name" th:href="@{/product(id=${p.id})}" th:text="${p.name}">상품명</a>
+        <!-- ✅ 상품명 클릭도 returnUrl 전달 -->
+        <a class="name" th:href="@{/product(id=${p.id}, returnUrl=${returnUrl})}" th:text="${p.name}">상품명</a>
 
         <div class="meta">
           <span>평점: </span>
@@ -148,7 +199,17 @@
           </span>
         </div>
 
-        <div class="price"
+        <!-- ✅ 가격 영역: SALE 표시 -->
+        <div class="price" th:if="${p.onSale and p.salePrice != null}">
+          <span class="badge-sale">SALE</span>
+          <span class="strike"
+                th:text="${p.price != null ? #numbers.formatInteger(p.price, 3, 'COMMA') : ''} + '원'"></span>
+          <span class="sale-price"
+                th:text="${#numbers.formatInteger(p.salePrice, 3, 'COMMA')} + '원'"></span>
+        </div>
+
+        <!-- ✅ 일반가 -->
+        <div class="price" th:if="${!(p.onSale and p.salePrice != null)}"
              th:text="${p.price != null ? #numbers.formatInteger(p.price, 3, 'COMMA') : '가격정보없음'} + ' 원'">
           0 원
         </div>
@@ -162,7 +223,6 @@
             <input type="hidden" name="action" value="add"/>
             <input type="hidden" name="productId" th:value="${p.id}"/>
             <input type="hidden" name="qty" value="1"/>
-            <!-- ✅ 컨트롤러가 내려준 returnUrl 사용 -->
             <input type="hidden" name="returnUrl" th:value="${returnUrl}"/>
             <button class="btn btn-cart" type="submit">🛒 장바구니</button>
           </form>
@@ -178,25 +238,26 @@
     </div>
   </div>
 </div>
-<!-- ✅ paging -->
+
+<!-- ✅ paging (saleOnly 유지 필수) -->
 <div class="pager" th:if="${totalPages > 1}">
   <!-- prev -->
   <a th:if="${page > 1}"
-     th:href="@{/products(category=${category}, q=${q}, sort=${sort}, page=${page-1}, size=${size})}">
+     th:href="@{/products(category=${category}, q=${q}, sort=${sort}, saleOnly=${saleOnly}, page=${page-1}, size=${size})}">
     ◀ 이전
   </a>
   <span th:if="${page <= 1}" class="disabled">◀ 이전</span>
 
-  <!-- pages (간단 버전: 1..totalPages) -->
+  <!-- pages -->
   <a th:each="i : ${#numbers.sequence(1, totalPages)}"
-     th:href="@{/products(category=${category}, q=${q}, sort=${sort}, page=${i}, size=${size})}"
+     th:href="@{/products(category=${category}, q=${q}, sort=${sort}, saleOnly=${saleOnly}, page=${i}, size=${size})}"
      th:text="${i}"
      th:classappend="${i == page} ? 'active' : ''">
   </a>
 
   <!-- next -->
   <a th:if="${page < totalPages}"
-     th:href="@{/products(category=${category}, q=${q}, sort=${sort}, page=${page+1}, size=${size})}">
+     th:href="@{/products(category=${category}, q=${q}, sort=${sort}, saleOnly=${saleOnly}, page=${page+1}, size=${size})}">
     다음 ▶
   </a>
   <span th:if="${page >= totalPages}" class="disabled">다음 ▶</span>

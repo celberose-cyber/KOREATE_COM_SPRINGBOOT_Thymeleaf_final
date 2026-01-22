@@ -49,6 +49,47 @@ public class EmailVerificationDAO {
             return ps.executeUpdate();
         }
     }
+    // EmailVerificationDAO.java 안에 추가
+
+    public int insertTokenForEmail(Connection con, String verifyEmail, String purpose,
+                                   String tokenHash, Timestamp expiresAt) throws SQLException {
+        String sql = """
+      INSERT INTO email_verifications(user_id, verify_email, purpose, token_hash, expires_at)
+      VALUES(NULL, ?, ?, ?, ?)
+    """;
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, verifyEmail);
+            ps.setString(2, purpose);
+            ps.setString(3, tokenHash);
+            ps.setTimestamp(4, expiresAt);
+            return ps.executeUpdate();
+        }
+    }
+
+    public VerifyRow findUsableByEmailAndTokenHash(Connection con, String verifyEmail, String purpose,
+                                                   String tokenHash) throws SQLException {
+        String sql = """
+      SELECT verify_id, user_id, expires_at, used_at
+      FROM email_verifications
+      WHERE verify_email=? AND purpose=? AND token_hash=?
+      ORDER BY verify_id DESC
+      LIMIT 1
+    """;
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, verifyEmail);
+            ps.setString(2, purpose);
+            ps.setString(3, tokenHash);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return null;
+                VerifyRow r = new VerifyRow();
+                r.verifyId = rs.getLong("verify_id");
+                r.userId = rs.getLong("user_id"); // NULL일 수 있음
+                r.expiresAt = rs.getTimestamp("expires_at");
+                r.usedAt = rs.getTimestamp("used_at");
+                return r;
+            }
+        }
+    }
 
     public static class VerifyRow {
         public long verifyId;

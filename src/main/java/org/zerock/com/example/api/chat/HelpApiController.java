@@ -167,49 +167,37 @@ public class HelpApiController {
     @GetMapping(value="/top10", produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, Object> top10(
             @RequestParam(defaultValue = "rating") String sort,
-            @RequestParam(defaultValue = "all") String category
+            @RequestParam(defaultValue = "all") String category,
+            @RequestParam(defaultValue = "0") int saleOnly   // ✅ 0/1로 받기(프론트 편함)
     ) {
         int size = 10;
-        String q = ""; // TOP10은 검색어 없음
+        int offset = 0;
+        String q = "";
 
-        if (category == null || category.isBlank()) {
-            category = "all";
-        }
+        if (category == null || category.isBlank()) category = "all";
+        boolean sale = (saleOnly == 1);
 
-        // ✅ 프론트 sort 값 → DAO sort 값 매핑
         String sortParam = switch (sort) {
-            // 버튼/기존 UI 호환
             case "price" -> "priceDesc";
-
-            // 채팅 action / 신규 파라미터
             case "price_desc", "priceDesc" -> "priceDesc";
             case "price_asc",  "priceAsc"  -> "priceAsc";
-
             case "reviews", "review" -> "review";
-            case "new"              -> "new";
-            case "rating"           -> "rating";
-
-            // 모르는 값은 다 rating으로 고정(안전)
+            case "new" -> "new";
+            case "rating" -> "rating";
             default -> "rating";
         };
-        List<ProductDTO> list;
 
-        // ✅ 핵심 분기
-        if ("all".equalsIgnoreCase(category)) {
-            // 🔥 전체 상품 TOP10
-            list = productDAO.searchByName("", sortParam, size);
-        } else {
-            // 🔥 카테고리별 TOP10
-            list = productDAO.listByCategoryPaged(category, q, sortParam, size, 0);
-        }
+        // ✅ 이제 DAO 시그니처에 맞춤
+        List<ProductDTO> list = productDAO.listAllPaged(category, q, sortParam, sale, size, offset);
 
         List<Map<String, Object>> items = new ArrayList<>();
-
         for (ProductDTO p : list) {
             Map<String, Object> m = new HashMap<>();
             m.put("id", p.getId());
             m.put("name", p.getName());
-            m.put("price", p.getPrice());          // ✅ null OK
+            m.put("price", p.getPrice());
+            m.put("salePrice", p.getSalePrice()); // DTO에 있어야 함
+            m.put("onSale", p.isOnSale());        // DTO에 있어야 함
             m.put("rating", p.getRating());
             m.put("reviewCount", p.getReviewCount());
             m.put("imageUrl", p.getImageUrl());
@@ -217,13 +205,15 @@ public class HelpApiController {
             items.add(m);
         }
 
-
         return Map.of(
                 "sort", sortParam,
                 "category", category,
+                "saleOnly", sale ? 1 : 0,
                 "items", items
         );
     }
+
+
 
     @GetMapping(value="/intro", produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, Object> intro() {

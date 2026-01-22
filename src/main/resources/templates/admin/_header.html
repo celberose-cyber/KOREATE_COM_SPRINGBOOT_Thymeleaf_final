@@ -1,0 +1,62 @@
+<div th:fragment="adminHeader">
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+
+  <header class="admin-header">
+    <div class="brand-div">
+    <a class="brand" th:href="@{/}">KOREATE COM</a>
+    </div>
+    <div class="admin-header-inner">
+
+      <div class="left">
+        <a class="brand" th:href="@{/admin}">ADMIN</a>
+        <a class="go-shop" th:href="@{/}">← 쇼핑몰로</a>
+      </div>
+
+      <nav class="admin-nav">
+        <a class="nav-link" th:href="@{/admin}">대시보드</a>
+        <a class="nav-link" th:href="@{/admin/members}">회원관리</a>
+        <a class="nav-link" th:href="@{/admin/products}">상품관리</a>
+        <a class="nav-link" th:href="@{/admin/notices}">공지사항</a>
+        <a class="nav-link" th:href="@{/admin/suggests}">건의사항</a>
+        <a class="nav-link" th:href="@{/admin/orders}">주문관리</a>
+        <a class="nav-link" th:href="@{/admin/crawl}">크롤링</a>
+
+        <span class="sep">|</span>
+
+        <!-- 로그인/권한 표기 -->
+        <span class="me" th:if="${session.LOGIN_USER != null}">
+          <b th:text="${session.LOGIN_USER.name}">관리자</b>
+          (<span th:text="${session.LOGIN_USER.role}">ADMIN</span>)
+        </span>
+
+        <!-- 로그아웃은 GET 링크 말고 POST 추천 -->
+        <a class="nav-link" th:href="@{/logout}">로그아웃</a>
+      </nav>
+    </div>
+  </header>
+
+  <style>
+    .brand{ font-weight:900; text-decoration:none; color:#111; }
+    .brand-div{ display:flex; justify-content:space-between; align-items:center; gap:14px; }
+   .admin-header{padding:12px;border-bottom:1px solid #ddd;margin-bottom:16px;background:#fff;}
+   .admin-header-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:12px;}
+   .left{display:flex;align-items:center;gap:10px;}
+   .brand{font-weight:900;text-decoration:none;color:#111;}
+   .go-shop{text-decoration:none;color:#555;font-weight:800;font-size:13px;}
+   .go-shop:hover{text-decoration:underline;}
+
+   .admin-nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+   .nav-link{
+     text-decoration:none;font-weight:800;padding:8px 10px;border-radius:10px;color:#111;
+   }
+   .nav-link:hover{background:#f5f5f5;}
+   .sep{color:#bbb;margin:0 2px;}
+   .me{font-size:13px;color:#444;font-weight:800;}
+
+   .btn-logout{
+     border:1px solid #ddd;background:#fff;border-radius:10px;
+     padding:8px 10px;cursor:pointer;font-weight:900;
+   }
+   .btn-logout:hover{background:#f7f7f7;}
+  </style>
+</div>

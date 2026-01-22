@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="admin/_header :: adminHeader"></div>
+
+<div th:replace="admin/_layout :: adminLayout(${title}, ~{::content})">
+  <div th:fragment="content">
+
+    <!-- 상단: 제목/메타/버튼 -->
+    <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; margin-bottom:12px;">
+      <div>
+        <h3 style="margin:0 0 6px 0;" th:text="${s.title}">제목</h3>
+        <div style="color:#666; font-size:13px;">
+          작성자: <b th:text="${s.writerUsername}">writer</b>
+          · 작성일: <span th:text="${#dates.format(s.createdAt,'yyyy-MM-dd HH:mm')}"></span>
+          <span th:if="${s.updatedAt != null}">
+            · 수정일: <span th:text="${#dates.format(s.updatedAt,'yyyy-MM-dd HH:mm')}"></span>
+          </span>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:8px; align-items:center;">
+        <a class="btn" th:href="@{/admin/suggests}">목록</a>
+
+        <form th:action="@{/admin/suggests/{id}/delete(id=${s.id})}" method="post"
+              onsubmit="return confirm('삭제하시겠습니까?');" style="display:inline;">
+          <button type="submit" class="btn">삭제</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 본문 -->
+    <div style="border:1px solid #eee; border-radius:12px; padding:14px; white-space:pre-wrap; line-height:1.6;"
+         th:text="${s.content}">내용</div>
+
+    <!-- 댓글 -->
+    <div style="margin-top:14px;">
+      <h4 style="margin:0 0 10px 0;">댓글</h4>
+
+      <div th:if="${#lists.isEmpty(comments)}" style="color:#666; padding:10px 0;">
+        아직 댓글이 없습니다.
+      </div>
+
+      <div th:each="c : ${comments}" style="border-top:1px solid #eee; padding:12px 0;">
+        <div style="display:flex; justify-content:space-between; gap:12px;">
+          <div style="font-weight:800;">
+            <span th:text="${c.authorUsername}">user</span>
+            <span th:if="${c.authorRole == 'ADMIN'}" style="margin-left:6px; color:#c00;">(관리자)</span>
+          </div>
+          <div style="color:#888; font-size:12px;"
+               th:text="${#dates.format(c.createdAt,'yyyy-MM-dd HH:mm')}"></div>
+        </div>
+
+        <div style="white-space:pre-wrap; margin-top:6px;"
+             th:text="${c.content}">댓글내용</div>
+      </div>
+
+      <!-- 관리자 댓글 작성 -->
+      <form th:action="@{/admin/suggests/{id}/comments(id=${s.id})}" method="post" style="margin-top:14px;">
+        <div style="font-weight:800; margin-bottom:6px;">관리자 댓글 작성</div>
+        <textarea class="input" name="content" rows="3" required placeholder="관리자 답변을 입력하세요"></textarea>
+
+        <div style="margin-top:8px;">
+          <button type="submit" class="btn btn-primary">댓글 등록</button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

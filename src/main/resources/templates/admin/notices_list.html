@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="admin/_header :: adminHeader"></div>
+
+<div th:replace="admin/_layout :: adminLayout(${title}, ~{::content})">
+  <div th:fragment="content">
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <div style="color:#666; font-size:13px;">
+        총 <b th:text="${total}">0</b> 건
+      </div>
+      <a class="btn btn-primary" th:href="@{/admin/notices/new}">+ 공지 작성</a>
+    </div>
+
+    <table>
+      <thead>
+      <tr>
+        <th style="width:80px;">ID</th>
+        <th style="width:240px;">제목</th>
+        <th style="width:160px;">작성자</th>
+        <th style="width:180px;">작성일</th>
+        <th style="width:180px;">관리</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="n : ${list}">
+        <td th:text="${n.id}">1</td>
+        <td>
+          <a th:href="@{/admin/notices/{id}/edit(id=${n.id})}"
+             th:text="${n.title}">제목</a>
+        </td>
+        <td th:text="${n.createdByUsername}">admin</td>
+        <td th:text="${#dates.format(n.createdAt,'yyyy-MM-dd HH:mm')}"></td>
+        <td style="display:flex; gap:8px;">
+          <a class="btn" th:href="@{/admin/notices/{id}/edit(id=${n.id})}">수정</a>
+          <form th:action="@{/admin/notices/{id}/delete(id=${n.id})}" method="post"
+                onsubmit="return confirm('삭제하시겠습니까?');">
+            <button class="btn" type="submit">삭제</button>
+          </form>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+
+    <!-- 페이징 -->
+    <div th:replace="~{fragments/paging :: paging(
+  ${baseUrl},
+  ${page},
+  ${lastPage},
+  ${size},
+  ${params}
+)}"></div>
+
+
+  </div>
+</div>
+
+</body>
+</html>

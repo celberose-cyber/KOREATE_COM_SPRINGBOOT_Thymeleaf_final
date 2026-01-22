@@ -13,7 +13,7 @@
 
         /* 이미지 크게 */
         .product-image img {
-            width: 420px;       /* 🔥 여기서 크기 조절 */
+            width: 420px;
             max-width: 100%;
             border: 1px solid #ddd;
         }
@@ -59,7 +59,7 @@
         }
         .toast{
             position: fixed;
-            top: 90px;              /* 헤더 높이에 맞춰 조절 */
+            top: 90px;
             left: 50%;
             transform: translateX(-50%);
             background: #111;
@@ -71,17 +71,40 @@
             font-size: 14px;
         }
 
+        /* ✅ SALE 표시 */
+        .badge-sale{
+            display:inline-block;
+            padding:2px 8px;
+            border-radius:999px;
+            background:#d32f2f;
+            color:#fff;
+            font-size:12px;
+            font-weight:900;
+            vertical-align:middle;
+        }
+        .strike{
+            color:#888;
+            text-decoration:line-through;
+            font-weight:700;
+            margin-left:8px;
+        }
+        .sale-price{
+            margin-left:8px;
+            font-weight:900;
+            color:#111;
+        }
     </style>
 
 </head>
 
-
 <body>
 
 <div th:replace="common/header :: header"></div>
+
 <div id="toastBox" th:if="${toast}" class="toast">
     <span th:text="${toast}">장바구니에 담겼습니다.</span>
 </div>
+
 <h2 th:text="${p.name}">상품명</h2>
 
 <div class="product-top">
@@ -95,9 +118,20 @@
     <div class="product-info">
         <p><b>카테고리:</b> <span th:text="${p.category}"></span></p>
 
+        <!-- ✅ 가격 표시: SALE/일반 -->
         <p>
             <b>가격:</b>
-            <span th:text="${p.price != null ? #numbers.formatInteger(p.price, 3, 'COMMA') : '가격정보없음'} + ' 원'">
+
+            <span th:if="${p.onSale and p.salePrice != null}">
+                <span class="badge-sale">SALE</span>
+                <span class="strike"
+                      th:text="${p.price != null ? #numbers.formatInteger(p.price, 3, 'COMMA') : ''} + '원'"></span>
+                <span class="sale-price"
+                      th:text="${#numbers.formatInteger(p.salePrice, 3, 'COMMA')} + '원'"></span>
+            </span>
+
+            <span th:if="${!(p.onSale and p.salePrice != null)}"
+                  th:text="${p.price != null ? #numbers.formatInteger(p.price, 3, 'COMMA') : '가격정보없음'} + ' 원'">
             </span>
         </p>
 
@@ -126,15 +160,13 @@
             <input type="hidden" name="returnUrl" th:value="@{/product(id=${p.id})}">
 
             <button class="btn-cart" type="submit">🛒 장바구니 담기</button>
+
             <input type="hidden" id="returnUrl" th:value="${returnUrl}" />
             <button type="button" class="btn-back" onclick="goBack()">← 뒤로가기</button>
         </form>
     </div>
 
 </div>
-
-
-
 
 <hr>
 
@@ -157,9 +189,10 @@
 <script th:if="${toast}">
     setTimeout(() => {
         const el = document.getElementById('toastBox');
-        if (el) el.remove(); // 또는 el.style.display='none'
+        if (el) el.remove();
     }, 2000);
 </script>
+
 <script>
     function goBack() {
         const ru = document.getElementById('returnUrl')?.value;
@@ -169,5 +202,4 @@
 </script>
 
 </body>
-
 </html>

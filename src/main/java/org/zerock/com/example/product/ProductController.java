@@ -18,30 +18,33 @@ public class ProductController {
     }
 
     @GetMapping
-    public String list(@RequestParam(name = "category", defaultValue = "mouse") String category,
-                       @RequestParam(required = false) String q,
-                       @RequestParam(defaultValue = "new") String sort,
-                       @RequestParam(defaultValue = "1") int page,
-                       @RequestParam(defaultValue = "20") int size,
-                       HttpServletRequest request,
-                       Model model) {
+    public String list(
+            @RequestParam(name = "category", defaultValue = "mouse") String category,
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "new") String sort,
+            @RequestParam(defaultValue = "0") int saleOnly,   // ✅ 추가
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size,
+            HttpServletRequest request,
+            Model model) {
 
         if (category == null || category.trim().isEmpty()) category = "mouse";
-        if (page < 1) page = 1;
-        if (size < 1) size = 20;
+        page = Math.max(1, page);
+        size = Math.max(1, size);
 
-        int total = productDAO.countByCategory(category, q);
-        int totalPages = (int) Math.ceil(total / (double) size);
-
-        if (totalPages == 0) totalPages = 1;         // 결과 0개일 때도 UI 안정화
-        if (page > totalPages) page = totalPages;
+        int total = productDAO.countByCategory(category, q, saleOnly == 1);
+        int totalPages = Math.max(1, (int) Math.ceil(total / (double) size));
+        page = Math.min(page, totalPages);
 
         int offset = (page - 1) * size;
-        List<ProductDTO> list = productDAO.listByCategoryPaged(category, q, sort, size, offset);
+
+        List<ProductDTO> list =
+                productDAO.listByCategoryPaged(category, q, sort, saleOnly == 1, size, offset);
 
         model.addAttribute("category", category);
         model.addAttribute("q", q);
         model.addAttribute("sort", sort);
+        model.addAttribute("saleOnly", saleOnly);
         model.addAttribute("list", list);
 
         model.addAttribute("page", page);
@@ -51,11 +54,12 @@ public class ProductController {
 
         // returnUrl 유지
         String uri = request.getRequestURI();
-        String qs  = request.getQueryString();
-        String returnUrl = (qs == null || qs.isBlank()) ? uri : (uri + "?" + qs);
-        model.addAttribute("returnUrl", returnUrl);
+        String qs = request.getQueryString();
+        model.addAttribute("returnUrl",
+                (qs == null || qs.isBlank()) ? uri : (uri + "?" + qs));
 
         return "product/list";
     }
+
 
 }

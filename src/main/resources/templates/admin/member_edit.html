@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{admin/_header :: adminHeader}"></div>
+
+<div th:replace="~{admin/_layout :: adminLayout(${title}, ~{::content})}">
+  <div th:fragment="content">
+
+    <form method="post" th:action="@{/admin/members/{id}(id=${u.userId})}">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+
+        <div>
+          <div style="font-weight:800; margin-bottom:6px;">아이디</div>
+          <input class="input" th:value="${u.username}" readonly/>
+        </div>
+
+        <div>
+          <div style="font-weight:800; margin-bottom:6px;">이메일</div>
+          <input class="input" th:value="${u.verifyEmail}" readonly/>
+        </div>
+
+        <div>
+          <div style="font-weight:800; margin-bottom:6px;">이름</div>
+          <input class="input" name="name" th:value="${u.name}"/>
+        </div>
+
+        <div>
+          <div style="font-weight:800; margin-bottom:6px;">전화</div>
+          <input class="input" name="phone" th:value="${u.phone}"/>
+        </div>
+
+        <div>
+          <div style="font-weight:800; margin-bottom:6px;">권한</div>
+          <select class="input" name="role">
+            <option value="USER"  th:selected="${u.role=='USER'}">USER</option>
+            <option value="ADMIN" th:selected="${u.role=='ADMIN'}">ADMIN</option>
+          </select>
+        </div>
+
+        <div>
+          <div style="font-weight:800; margin-bottom:6px;">등급</div>
+          <select class="input" name="grade">
+            <option value="BRONZE" th:selected="${u.grade=='BRONZE'}">BRONZE</option>
+            <option value="SILVER" th:selected="${u.grade=='SILVER'}">SILVER</option>
+            <option value="GOLD"   th:selected="${u.grade=='GOLD'}">GOLD</option>
+            <option value="PLATINUM"   th:selected="${u.grade=='PLATINUM'}">PLATINUM</option>
+            <option value="DIAMOND"   th:selected="${u.grade=='DIAMOND'}">DIAMOND</option>
+
+          </select>
+        </div>
+
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
+        <a class="btn" th:href="@{/admin/members}">목록</a>
+        <button class="btn btn-primary" type="submit">저장</button>
+      </div>
+    </form>
+
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>회원가입 완료</title>
+</head>
+<body>
+<div th:replace="common/header :: header"></div>
+
+<div class="wrap">
+    <div class="card">
+        <h2 class="title">회원가입 완료</h2>
+
+        <div class="ok" th:text="${message}">
+            축하합니다! 회원가입이 완료되었습니다. 로그인해주세요.
+        </div>
+
+        <div style="margin-top:12px;">
+            <a class="btn btn-primary" th:href="@{/login}">로그인으로</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .wrap{max-width:900px;margin:0 auto;padding:20px;}
+    .card{border:1px solid #e5e5e5;border-radius:12px;background:#fff;padding:14px 16px;max-width:520px;margin:0 auto;}
+    .title{font-weight:900;margin:0 0 10px;}
+    .ok{border:1px solid #b7ebc6;background:#f6fffa;color:#116329;padding:10px 12px;border-radius:12px;font-weight:800;margin-bottom:10px;}
+    .btn{padding:8px 10px;border-radius:10px;border:1px solid #ddd;background:#fff;cursor:pointer;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+    .btn-primary{border-color:#111;background:#111;color:#fff;}
+    .btn-primary:hover{background:#000;}
+</style>
+
+<div th:replace="common/footer :: footer"></div>
+</body>
+</html>

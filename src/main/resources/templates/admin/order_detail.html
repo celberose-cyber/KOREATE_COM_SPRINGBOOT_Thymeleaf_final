@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${title}">주문 상세</title>
+</head>
+<body>
+
+<div th:replace="~{admin/_header :: adminHeader}"></div>
+<div th:replace="~{admin/_layout :: adminLayout(${title}, ~{::content})}">
+    <div th:fragment="content">
+
+        <div class="card">
+            <div class="topline">
+                <div>
+                    <h3 style="margin:0;">주문 상세</h3>
+                    <div class="muted" style="margin-top:6px;">
+                        주문ID: <b th:text="${header.orderId}">0</b> ·
+                        주문번호: <b th:text="${header.orderNo}">ORD</b>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <span class="badge"
+                th:classappend="${header.status == 'CANCEL_REQUESTED'} ? ' danger' :
+                                (${header.status == 'REFUNDED'} ? ' gray' :
+                                (${header.status == 'CONFIRMED'} ? ' ok' : ''))"
+                th:text="${header.status}">
+            PAID
+          </span>
+                    <a class="btn" th:href="@{/admin/orders}">목록</a>
+                </div>
+            </div>
+
+            <!-- 요약 정보 -->
+            <div class="grid">
+                <div class="box">
+                    <div class="label">배송지</div>
+                    <div class="value" th:text="${header.address}">주소</div>
+                </div>
+
+                <div class="box">
+                    <div class="label">총 결제금액</div>
+                    <div class="value">
+                        <b th:text="${#numbers.formatInteger(header.totalPrice,0,'COMMA')}">0</b>원
+                    </div>
+                </div>
+
+                <div class="box">
+                    <div class="label">결제일</div>
+                    <div class="value muted" th:text="${header.paidAt}">-</div>
+                </div>
+
+                <div class="box">
+                    <div class="label">구매확정일</div>
+                    <div class="value muted" th:text="${header.confirmedAt}">-</div>
+                </div>
+
+                <div class="box">
+                    <div class="label">취소요청일</div>
+                    <div class="value muted" th:text="${header.cancelRequestedAt}">-</div>
+                </div>
+
+                <div class="box">
+                    <div class="label">환불완료일</div>
+                    <div class="value muted" th:text="${header.refundedAt}">-</div>
+                </div>
+
+                <div class="box" th:if="${header.cancelReason != null && !#strings.isEmpty(header.cancelReason)}"
+                     style="grid-column:1 / -1;">
+                    <div class="label">취소 사유</div>
+                    <div class="value" th:text="${header.cancelReason}">사유</div>
+                </div>
+            </div>
+
+            <!-- ✅ 취소 확정 버튼: CANCEL_REQUESTED에서만 -->
+            <div class="actions" th:if="${header.status == 'CANCEL_REQUESTED'}">
+                <form method="post"
+                      th:action="@{/admin/orders/{id}/cancel-confirm(id=${header.orderId})}"
+                      onsubmit="return confirm('취소를 확정하시겠습니까? (환불/포인트 롤백 포함)');">
+                    <button type="submit" class="btn danger">취소 확정</button>
+                </form>
+                <div class="muted" style="font-size:12px;">
+                    * 실제 상태 검증/멱등성은 서비스(confirmCancelByAdmin)에서 처리되어야 합니다.
+                </div>
+            </div>
+
+            <div class="actions" th:if="${header.status != 'CANCEL_REQUESTED'}">
+                <div class="muted">취소 확정 대상 상태가 아닙니다.</div>
+            </div>
+        </div>
+
+        <!-- 상품 라인아이템 -->
+        <div class="card">
+            <h3 style="margin:0 0 10px;">주문 상품</h3>
+
+            <div th:if="${#lists.isEmpty(items)}" class="muted">
+                상품 정보가 없습니다.
+            </div>
+
+            <table th:if="${!#lists.isEmpty(items)}" class="tbl">
+                <thead>
+                <tr>
+                    <th>상품</th>
+                    <th style="width:120px;">수량</th>
+                    <th style="width:140px;">단가</th>
+                    <th style="width:160px;">합계</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="it : ${items}">
+                    <!-- ✅ 상품: 이미지 + 이름을 한 칸에 -->
+                    <td>
+                        <div class="prod">
+                            <img th:if="${it.imageUrl != null}"
+                                 th:src="${it.imageUrl}"
+                                 class="prod-img" alt="">
+
+                            <div class="prod-text">
+                                <div class="prod-name" th:text="${it.productName}">상품명</div>
+                                <div class="prod-sub muted">
+                                    수량 <b th:text="${it.quantity}">1</b> ·
+                                    단가 <b th:text="${#numbers.formatInteger(it.unitPrice,0,'COMMA')}">0</b>원
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- 나머지 컬럼은 숫자만 -->
+                    <td th:text="${it.quantity}">1</td>
+                    <td th:text="${#numbers.formatInteger(it.unitPrice,0,'COMMA')} + '원'">0원</td>
+                    <td>
+                        <b th:text="${#numbers.formatInteger(it.lineTotal(),0,'COMMA')}">0</b>원
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+        </div>
+
+        <style>
+            .card{border:1px solid #e5e5e5;border-radius:12px;background:#fff;padding:16px;margin-top:12px;}
+            .topline{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;}
+            .muted{color:#777;font-size:13px;}
+            .tbl{width:100%;border-collapse:collapse;margin-top:10px;}
+            .tbl th,.tbl td{border-bottom:1px solid #eee;padding:10px;text-align:left;vertical-align:middle;}
+            .tbl th{background:#fafafa;font-weight:900;}
+            .btn{display:inline-block;border:1px solid #111;border-radius:10px;padding:8px 12px;background:#fff;color:#111;text-decoration:none;font-weight:900;cursor:pointer;}
+            .btn:hover{background:#111;color:#fff;}
+            .btn.danger{border-color:#ef4444;color:#ef4444;background:#fff;}
+            .btn.danger:hover{background:#ef4444;color:#fff;}
+            .badge{display:inline-block;border:1px solid #ddd;background:#fff;border-radius:999px;padding:4px 10px;font-weight:900;font-size:12px;}
+            .badge.ok{border-color:#16a34a;color:#16a34a;}
+            .badge.danger{border-color:#ef4444;color:#ef4444;}
+            .badge.gray{border-color:#999;color:#666;}
+            .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px;}
+            .box{border:1px solid #eee;border-radius:12px;padding:12px;background:#fff;}
+            .label{font-size:12px;color:#777;font-weight:900;margin-bottom:6px;}
+            .value{font-size:14px;}
+            .actions{margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+            @media (max-width: 900px){
+              .grid{grid-template-columns:1fr;}
+            }
+
+  .tbl{width:100%;border-collapse:collapse;margin-top:10px;table-layout:fixed;}
+  .tbl th,.tbl td{border-bottom:1px solid #eee;padding:10px;text-align:left;vertical-align:middle;}
+  .tbl th{background:#fafafa;font-weight:900;}
+
+  /* ✅ 상품 셀 안정화 */
+  .prod{display:flex;gap:12px;align-items:center;min-width:0;}
+  .prod-img{width:56px;height:56px;object-fit:contain;border:1px solid #eee;border-radius:10px;background:#fff;flex:0 0 auto;}
+  .prod-text{min-width:0;}
+  .prod-name{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .prod-sub{margin-top:4px;font-size:12px;color:#777;}
+
+
+        </style>
+
+    </div>
+</div>
+
+</body>
+</html>

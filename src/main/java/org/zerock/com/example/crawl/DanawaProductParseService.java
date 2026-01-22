@@ -106,7 +106,7 @@ public class DanawaProductParseService {
                     dto.setCategory(category);
                     dto.setPcode(safeTrimOrNull(pcode));
                     dto.setName(safeTrimOrNull(name));
-                    dto.setPrice(price);
+                    dto.setPrice(price == null ? null : price.longValue());
                     dto.setDetailUrl(detailUrl);
                     dto.setImageUrl(imageUrl);
                     dto.setSpecText(specText);

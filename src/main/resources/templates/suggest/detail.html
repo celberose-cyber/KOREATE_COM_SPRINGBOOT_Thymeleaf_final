@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${title}">건의 상세</title>
+
+  <style>
+    .wrap{max-width:1200px;margin:0 auto;padding:20px;}
+    .card{border:1px solid #eee;border-radius:12px;background:#fff;overflow:hidden;}
+    .card-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+      padding:14px 16px;border-bottom:1px solid #eee;background:#fafafa;}
+    .title{margin:0;font-weight:900;font-size:18px;}
+    .meta{color:#666;font-size:13px;font-weight:800;line-height:1.6;}
+
+    .btn{padding:8px 10px;border-radius:10px;border:1px solid #ddd;background:#fff;
+      cursor:pointer;font-weight:900;text-decoration:none;color:#111;display:inline-flex;align-items:center;}
+    .btn:hover{background:#f7f7f7;}
+    .btn-primary{background:#111;color:#fff;border-color:#111;}
+    .btn-primary:hover{background:#000;}
+    .btn-ghost{background:#fff;}
+    .btn-danger{border-color:#f1c0c0;color:#b00020;background:#fff;}
+    .btn-danger:hover{background:#fff5f5;}
+
+    .content{padding:16px;white-space:pre-wrap;line-height:1.7;font-size:14px;}
+    .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+
+    .section{padding:16px;}
+    .section-title{margin:0 0 10px 0;font-weight:900;font-size:16px;}
+    .empty{color:#666;font-weight:800;font-size:13px;padding:6px 0;}
+
+    .comment{border-top:1px solid #eee;padding:12px 0;}
+    .comment-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;}
+    .comment-who{font-weight:900;}
+    .comment-when{color:#888;font-size:12px;font-weight:800;}
+    .comment-body{white-space:pre-wrap;margin-top:6px;line-height:1.6;}
+
+    .badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;
+      font-size:12px;font-weight:900;border:1px solid #ddd;background:#fff;color:#111;margin-left:6px;}
+    .badge-admin{border-color:#f3caca;background:#fff5f5;color:#c00;}
+
+    .field{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
+    label{font-weight:900;font-size:13px;color:#111;}
+    textarea{
+      padding:10px 12px;border:1px solid #ddd;border-radius:12px;font-size:14px;
+      outline:none;background:#fff;resize:vertical;min-height:110px;line-height:1.6;
+    }
+    textarea:focus{border-color:#bbb;}
+  </style>
+</head>
+
+<body>
+<div th:replace="common/header :: header"></div>
+
+<div class="wrap">
+
+  <!-- 본문 카드 -->
+  <div class="card">
+    <div class="card-hd">
+      <div>
+        <h2 class="title" th:text="${s.title}">제목</h2>
+        <div class="meta">
+          작성일: <span th:text="${#dates.format(s.createdAt,'yyyy-MM-dd HH:mm')}"></span>
+          <span th:if="${s.updatedAt != null}">
+            · 수정일: <span th:text="${#dates.format(s.updatedAt,'yyyy-MM-dd HH:mm')}"></span>
+          </span>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <a class="btn" th:href="@{/suggests}">목록</a>
+
+        <a class="btn btn-ghost" th:href="@{/suggests/{id}/edit(id=${s.id})}">수정</a>
+
+        <form th:action="@{/suggests/{id}/delete(id=${s.id})}" method="post"
+              onsubmit="return confirm('삭제하시겠습니까?');" style="display:inline;">
+          <button type="submit" class="btn btn-danger">삭제</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="content" th:text="${s.content}">내용</div>
+  </div>
+
+  <!-- 댓글 카드 -->
+  <div class="card" style="margin-top:14px;">
+    <div class="card-hd">
+      <h3 class="title" style="font-size:16px;margin:0;">댓글</h3>
+      <div class="meta">
+        총 <b th:text="${#lists.size(comments)}">0</b>개
+      </div>
+    </div>
+
+    <div class="section">
+      <div th:if="${#lists.isEmpty(comments)}" class="empty">
+        아직 댓글이 없습니다.
+      </div>
+
+      <div th:each="c : ${comments}" class="comment">
+        <div class="comment-top">
+          <div class="comment-who">
+            <span th:text="${c.authorUsername}">user</span>
+            <span th:if="${c.authorRole == 'ADMIN'}" class="badge badge-admin">관리자</span>
+          </div>
+          <div class="comment-when" th:text="${#dates.format(c.createdAt,'yyyy-MM-dd HH:mm')}"></div>
+        </div>
+
+        <div class="comment-body" th:text="${c.content}">댓글내용</div>
+      </div>
+
+      <!-- 댓글 작성 -->
+      <form th:action="@{/suggests/{id}/comments(id=${s.id})}" method="post" style="margin-top:14px;">
+        <div class="field">
+          <label>댓글 작성</label>
+          <textarea name="content" rows="3" required placeholder="댓글을 입력하세요"></textarea>
+        </div>
+
+        <div style="margin-top:10px;">
+          <button type="submit" class="btn btn-primary">댓글 등록</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<div th:replace="common/footer :: footer"></div>
+</body>
+</html>

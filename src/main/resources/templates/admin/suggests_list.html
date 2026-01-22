@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{admin/_header :: adminHeader}"></div>
+
+<div th:replace="~{admin/_layout :: adminLayout(${title}, ~{::content})}">
+  <div th:fragment="content">
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <div style="color:#666; font-size:13px;">
+        총 <b th:text="${total}">0</b> 건
+      </div>
+      <!-- 건의사항은 보통 작성은 유저쪽에서 하므로 관리자에선 버튼 안 둬도 됨 -->
+      <!-- 필요하면 필터/검색 UI를 여기 추가 -->
+    </div>
+
+    <table>
+      <thead>
+      <tr>
+        <th style="width:90px;">ID</th>
+        <th style="width:240px;">제목</th>
+        <th style="width:160px;">작성자</th>
+        <th style="width:120px;">댓글</th> <!-- ✅ 추가 -->
+        <th style="width:180px;">작성일</th>
+        <th style="width:140px;">관리</th>
+        <th style="width:140px;">상태</th>
+
+      </tr>
+      </thead>
+
+      <tbody>
+      <tr th:each="s : ${list}">
+        <td th:text="${s.id}">1</td>
+        <td>
+          <a th:href="@{/admin/suggests/{id}(id=${s.id})}" th:text="${s.title}">제목</a>
+        </td>
+        <td th:text="${s.writerUsername}">writer</td>
+
+        <!-- ✅ 댓글 수 -->
+        <td>
+          <span th:text="${s.commentCount} + '개'">0개</span>
+        </td>
+
+        <td th:text="${#dates.format(s.createdAt,'yyyy-MM-dd HH:mm')}">-</td>
+        <td style="display:flex; gap:8px;">
+          <a class="btn" th:href="@{/admin/suggests/{id}(id=${s.id})}">보기</a>
+          <form th:action="@{/admin/suggests/{id}/delete(id=${s.id})}" method="post"
+                onsubmit="return confirm('삭제하시겠습니까?');">
+            <button class="btn" type="submit">삭제</button>
+          </form>
+        </td>
+
+        <td>
+          <div>
+            댓글 <b th:text="${s.commentCount}">0</b>개
+          </div>
+
+          <span th:if="${s.adminCommentCount > 0}"
+                style="color:#0a7; font-weight:800;">답변완료</span>
+
+          <span th:if="${s.adminCommentCount == 0}"
+                style="color:#999;">대기</span>
+        </td>
+      </tr>
+      </tbody>
+
+    </table>
+
+    <!-- ✅ 공통 페이징 -->
+    <div th:replace="~{fragments/paging :: paging(
+  ${baseUrl},
+  ${page},
+  ${lastPage},
+  ${size},
+  ${params}
+)}"></div>
+
+  </div>
+</div>
+</body>
+</html>

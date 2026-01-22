@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${title}">건의사항</title>
+
+  <style>
+    .wrap{max-width:1200px;margin:0 auto;padding:20px;}
+    .card{border:1px solid #eee;border-radius:12px;background:#fff;overflow:hidden;}
+    .card-hd{display:flex;justify-content:space-between;align-items:center;gap:12px;
+      padding:14px 16px;border-bottom:1px solid #eee;background:#fafafa;}
+    .title{margin:0;font-weight:900;font-size:18px;}
+    .meta{color:#666;font-size:13px;font-weight:800;}
+
+    .tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+    .input{padding:8px 10px;border:1px solid #ddd;border-radius:10px;font-weight:800;font-size:13px;}
+    .btn{padding:8px 10px;border-radius:10px;border:1px solid #ddd;background:#fff;
+      cursor:pointer;font-weight:900;text-decoration:none;color:#111;display:inline-flex;align-items:center;}
+    .btn:hover{background:#f7f7f7;}
+    .btn-primary{background:#111;color:#fff;border-color:#111;}
+    .btn-primary:hover{background:#000;}
+    .btn-ghost{background:#fff;}
+    .btn-danger{border-color:#f1c0c0;color:#b00020;background:#fff;}
+    .btn-danger:hover{background:#fff5f5;}
+
+    table{width:100%;border-collapse:collapse;}
+    th,td{border-bottom:1px solid #eee;padding:12px 10px;text-align:left;font-size:14px;vertical-align:top;}
+    th{background:#fff;font-weight:900;}
+
+    a.link{font-weight:900;text-decoration:none;color:#111;}
+    a.link:hover{text-decoration:underline;}
+
+    .stack{display:flex;flex-direction:column;gap:6px;}
+    .muted{color:#666;font-size:13px;font-weight:800;}
+    .status{display:inline-flex;align-items:center;gap:6px;font-weight:900;font-size:13px;}
+    .status.wait{color:#999;}
+    .status.done{color:#0a7;}
+    .badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;
+      font-size:12px;font-weight:900;border:1px solid #ddd;background:#fff;color:#111;}
+    .badge.done{border-color:#bfe9d6;background:#effaf4;color:#0a7;}
+    .badge.wait{border-color:#eee;background:#fafafa;color:#777;}
+
+    .pager{margin:16px 0 0; display:flex; gap:6px; justify-content:center; flex-wrap:wrap;}
+    .pager a,.pager span{padding:6px 10px;border:1px solid #ddd;border-radius:10px;
+      text-decoration:none;color:#111;font-weight:900;font-size:13px;}
+    .pager .active{background:#111;color:#fff;border-color:#111;}
+    .pager .disabled{color:#aaa;border-color:#eee;}
+  </style>
+</head>
+
+<body>
+<div th:replace="common/header :: header"></div>
+
+<div class="wrap">
+  <div class="card">
+
+    <div class="card-hd">
+      <h2 class="title" th:text="${title}">건의사항</h2>
+
+      <div class="tools">
+        <div class="meta">총 <b th:text="${total}">0</b>건</div>
+
+        <!-- size 드롭다운 (원하면 유지) -->
+        <form th:action="@{/suggests}" method="get" style="display:flex;gap:8px;align-items:center;">
+          <input type="hidden" name="page" value="1"/>
+          <select class="input" name="size" onchange="this.form.submit()">
+            <option value="10" th:selected="${size==10}">10개</option>
+            <option value="20" th:selected="${size==20}">20개</option>
+            <option value="30" th:selected="${size==30}">30개</option>
+          </select>
+        </form>
+
+        <a class="btn btn-primary" th:href="@{/suggests/new}">+ 건의 작성</a>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+      <tr>
+        <th style="width:90px;">번호</th>
+        <th>제목</th>
+        <th style="width:220px;">상태</th>
+        <th style="width:180px;">작성일</th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <tr th:each="s : ${list}">
+        <td th:text="${s.id}">1</td>
+
+        <td>
+          <a class="link" th:href="@{/suggests/{id}(id=${s.id})}" th:text="${s.title}">제목</a>
+        </td>
+
+        <td>
+          <div class="stack">
+            <div class="muted">
+              댓글 <b th:text="${s.commentCount}">0</b>개
+            </div>
+
+            <span th:if="${s.adminCommentCount > 0}" class="badge done">답변완료</span>
+            <span th:if="${s.adminCommentCount == 0}" class="badge wait">대기</span>
+          </div>
+        </td>
+
+        <td th:text="${#dates.format(s.createdAt,'yyyy-MM-dd HH:mm')}">-</td>
+      </tr>
+
+      <tr th:if="${#lists.isEmpty(list)}">
+        <td colspan="4" style="padding:18px;color:#666;">아직 작성한 건의가 없습니다.</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 페이징 -->
+  <div class="pager" th:if="${lastPage > 1}">
+    <a th:if="${page > 1}" th:href="@{/suggests(page=${page-1}, size=${size})}">◀ 이전</a>
+    <span th:if="${page <= 1}" class="disabled">◀ 이전</span>
+
+    <a th:each="i : ${#numbers.sequence(1,lastPage)}"
+       th:href="@{/suggests(page=${i}, size=${size})}"
+       th:text="${i}" th:classappend="${i==page} ? 'active' : ''"></a>
+
+    <a th:if="${page < lastPage}" th:href="@{/suggests(page=${page+1}, size=${size})}">다음 ▶</a>
+    <span th:if="${page >= lastPage}" class="disabled">다음 ▶</span>
+  </div>
+</div>
+
+<div th:replace="common/footer :: footer"></div>
+</body>
+</html>
